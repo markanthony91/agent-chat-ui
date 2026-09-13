@@ -6,6 +6,7 @@ export type ImportedOkfBundle = {
 };
 
 const decoder = new TextDecoder("utf-8", { fatal: false });
+const RESERVED_OKF_MARKDOWN = new Set(["index.md", "log.md"]);
 
 function u16(view: DataView, offset: number): number {
   return view.getUint16(offset, true);
@@ -35,6 +36,11 @@ function stripCommonRoot(paths: string[]): { paths: string[]; prefix: string } {
   const root = firstParts[0][0];
   if (!firstParts.every((parts) => parts[0] === root)) return { paths, prefix: "" };
   return { paths: paths.map((path) => path.slice(root.length + 1)), prefix: `${root}/` };
+}
+
+function isReservedOkfMarkdown(path: string): boolean {
+  const basename = path.split("/").pop()?.toLowerCase() ?? "";
+  return RESERVED_OKF_MARKDOWN.has(basename);
 }
 
 export async function readOkfZip(file: File): Promise<ImportedOkfBundle> {
@@ -97,7 +103,7 @@ export async function readOkfZip(file: File): Promise<ImportedOkfBundle> {
   for (const path of paths) {
     const content = files[path];
     if (!content.trim()) throw new Error(`Arquivo vazio no bundle: ${path}`);
-    if (path.split("/").pop() !== "index.md" && !/^type\s*:\s*.+$/m.test(content)) {
+    if (!isReservedOkfMarkdown(path) && !/^type\s*:\s*.+$/m.test(content)) {
       throw new Error(`Conceito sem campo type: ${path}`);
     }
   }
