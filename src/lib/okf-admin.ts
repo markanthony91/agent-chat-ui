@@ -21,7 +21,9 @@ type OkfAdminInput = {
     | "activate_bundle"
     | "list_tools"
     | "set_tool_enabled"
-    | "reset_tools";
+    | "reset_tools"
+    | "get_simulator_fixture"
+    | "save_simulator_fixture";
   bundle_name?: string;
   bundle_version?: string;
   bundle_id?: string;
@@ -32,6 +34,7 @@ type OkfAdminInput = {
   from_active?: boolean;
   tool_name?: string;
   enabled?: boolean;
+  fixture?: Record<string, unknown>;
 };
 
 type OkfAdminState = {
@@ -42,13 +45,7 @@ type OkfAdminState = {
 function getConnection() {
   const params = new URLSearchParams(window.location.search);
   return {
-    // Knowledge/admin operations must always use the same runtime that owns /data/okf.
-    // A dedicated override is supported for other environments without coupling this
-    // path to whatever backend the chat UI itself may be pointed at.
-    apiUrl:
-      params.get("okfApiUrl") ||
-      process.env.NEXT_PUBLIC_OKF_API_URL ||
-      DEFAULT_OKF_API_URL,
+    apiUrl: params.get("okfApiUrl") || process.env.NEXT_PUBLIC_OKF_API_URL || DEFAULT_OKF_API_URL,
     apiKey: getApiKey() || undefined,
   };
 }
