@@ -14,9 +14,12 @@ type OkfAdminInput = {
     | "draft_read"
     | "draft_write"
     | "validate_draft"
-    | "publish_draft";
+    | "publish_draft"
+    | "list_versions"
+    | "activate_bundle";
   bundle_name?: string;
   bundle_version?: string;
+  bundle_id?: string;
   files?: Record<string, string>;
   path?: string;
   content?: string;
