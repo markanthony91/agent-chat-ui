@@ -44,9 +44,7 @@ async function getAdminAssistant(client: Client) {
   return assistant;
 }
 
-export async function runOkfAdmin(
-  input: OkfAdminInput,
-): Promise<Record<string, unknown> | Array<Record<string, unknown>>> {
+export async function runOkfAdmin(input: OkfAdminInput): Promise<Record<string, unknown>> {
   const { apiUrl, apiKey } = getConnection();
   if (!apiUrl) throw new Error("Deployment URL não configurada.");
   const client = new Client({ apiUrl, apiKey });
@@ -62,7 +60,7 @@ export async function runOkfAdmin(
       if (event.data && typeof event.data === "object") state = event.data as OkfAdminState;
     }
     if (state.error) throw new Error(state.error);
-    return state.result ?? {};
+    return (state.result ?? {}) as unknown as Record<string, unknown>;
   } finally {
     await client.threads.delete(thread.thread_id);
   }
