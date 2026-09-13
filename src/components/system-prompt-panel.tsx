@@ -6,6 +6,7 @@ import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
 import { KnowledgeEditor } from "@/components/knowledge-editor";
 import { OkfBundleImporter } from "@/components/okf-bundle-importer";
+import { ToolsPanel } from "@/components/tools-panel";
 
 const DEFAULT_PROMPT = `# System Prompt
 
@@ -22,7 +23,7 @@ Você é um agente de atendimento especializado em cobrança e negociação.
 - Quando uma regra não estiver documentada no conhecimento disponível, diga isso de forma natural em vez de presumir a resposta.
 `;
 
-type SettingsTab = "prompt" | "knowledge";
+type SettingsTab = "prompt" | "knowledge" | "tools";
 
 function getConnection() {
   const params = new URLSearchParams(window.location.search);
@@ -90,21 +91,26 @@ export function SystemPromptPanel(): React.ReactNode {
     finally { setSaving(false); }
   };
 
+  const tabClass = (name: SettingsTab) => `rounded-lg px-3 py-2 text-left text-sm font-medium ${tab === name ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-900"}`;
+
   return <>
     {!open && <button type="button" onClick={() => setOpen(true)} className="fixed right-14 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800" aria-label="Abrir configurações do agente" title="Configurações do agente"><Settings className="h-5 w-5" /></button>}
     {open && <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-6">
       <div className="flex max-h-[92vh] w-full max-w-5xl flex-col rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl dark:bg-neutral-950">
-        <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4 dark:border-neutral-800"><div><h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">Configurações do agente</h2><p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Prompt, conhecimento e recursos do runtime.</p></div><button type="button" onClick={() => setOpen(false)} className="ml-4 rounded-lg px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">Fechar</button></div>
+        <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4 dark:border-neutral-800"><div><h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">Configurações do agente</h2><p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Prompt, conhecimento e tools disponíveis no runtime.</p></div><button type="button" onClick={() => setOpen(false)} className="ml-4 rounded-lg px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">Fechar</button></div>
         <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
           <div className="flex gap-2 border-b border-neutral-200 p-3 sm:w-52 sm:flex-col sm:border-r sm:border-b-0 dark:border-neutral-800">
-            <button type="button" onClick={() => setTab("prompt")} className={`rounded-lg px-3 py-2 text-left text-sm font-medium ${tab === "prompt" ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-900"}`}>System Prompt</button>
-            <button type="button" onClick={() => setTab("knowledge")} className={`rounded-lg px-3 py-2 text-left text-sm font-medium ${tab === "knowledge" ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-900"}`}>Knowledge</button>
+            <button type="button" onClick={() => setTab("prompt")} className={tabClass("prompt")}>System Prompt</button>
+            <button type="button" onClick={() => setTab("knowledge")} className={tabClass("knowledge")}>Knowledge</button>
+            <button type="button" onClick={() => setTab("tools")} className={tabClass("tools")}>Tools</button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {tab === "prompt" ? <>
+            {tab === "prompt" && <>
               <div className="p-5"><h3 className="font-semibold text-neutral-950 dark:text-neutral-50">System Prompt</h3><p className="mt-1 mb-4 text-sm text-neutral-500 dark:text-neutral-400">Salvo no Assistant do LangGraph e aplicado aos próximos runs.</p>{error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">{error}</div>}<textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={loading || saving} spellCheck={false} className="min-h-[48vh] w-full resize-y rounded-xl border border-neutral-300 bg-neutral-50 p-4 font-mono text-sm leading-6 text-neutral-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" /><div className="mt-2 flex items-center justify-between text-xs text-neutral-500"><span>{prompt.length.toLocaleString()} caracteres</span><span>{loading ? "Carregando..." : isDirty ? "Alterações não salvas" : "Sincronizado com o runtime"}</span></div></div>
               <div className="flex items-center justify-end gap-3 border-t border-neutral-200 px-5 py-4 dark:border-neutral-800">{saved && <span className="text-sm text-emerald-600 dark:text-emerald-400">Salvo no runtime</span>}<button type="button" onClick={() => void savePrompt()} disabled={!isDirty || loading || saving || !assistant} className="rounded-lg bg-neutral-950 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-neutral-950">{saving ? "Salvando..." : "Salvar"}</button></div>
-            </> : <div><div className="px-5 pt-5"><OkfBundleImporter onImported={() => setKnowledgeRevision((value) => value + 1)} /></div><KnowledgeEditor key={knowledgeRevision} /></div>}
+            </>}
+            {tab === "knowledge" && <div><div className="px-5 pt-5"><OkfBundleImporter onImported={() => setKnowledgeRevision((value) => value + 1)} /></div><KnowledgeEditor key={knowledgeRevision} /></div>}
+            {tab === "tools" && <ToolsPanel />}
           </div>
         </div>
       </div>
