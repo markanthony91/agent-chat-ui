@@ -66,11 +66,11 @@ export async function runOkfAdmin(input: OkfAdminInput): Promise<Record<string, 
   try {
     const stream = client.runs.stream(thread.thread_id, assistant.assistant_id, {
       input,
-      streamMode: ["values"],
+      streamMode: "values",
     });
     let state: OkfAdminState = {};
     for await (const event of stream) {
-      if (event.data && typeof event.data === "object") state = event.data as OkfAdminState;
+      if (event.data && typeof event.data === "object" && !Array.isArray(event.data)) state = event.data as OkfAdminState;
     }
     if (state.error) throw new Error(state.error);
     return (state.result ?? {}) as unknown as Record<string, unknown>;
@@ -78,3 +78,4 @@ export async function runOkfAdmin(input: OkfAdminInput): Promise<Record<string, 
     await client.threads.delete(thread.thread_id);
   }
 }
+
