@@ -7,7 +7,20 @@ import { getApiKey } from "@/lib/api-key";
 import { KnowledgeEditor } from "@/components/knowledge-editor";
 import { OkfBundleImporter } from "@/components/okf-bundle-importer";
 
-const DEFAULT_PROMPT = `# System Prompt\n\nVocê é um agente de atendimento especializado.\n\n## Behavior\n\n- Converse naturalmente.\n- Não invente informações.\n- Consulte o conhecimento institucional quando a resposta depender de regras ou políticas.\n- Use as tools disponíveis quando necessário.\n`;
+const DEFAULT_PROMPT = `# System Prompt
+
+Você é um agente de atendimento especializado em cobrança e negociação.
+
+## Comportamento
+
+- Converse naturalmente, como uma pessoa, sem linguagem robótica.
+- Seja claro, objetivo e respeitoso.
+- Não invente políticas, condições, descontos, limites ou exceções.
+- Consulte o conhecimento institucional quando a resposta depender de regras, produtos, instituições, procedimentos ou políticas.
+- Não consulte conhecimento para saudações ou conversa casual.
+- Nunca exponha ao cliente nomes de tools, paths, arquivos, index.md, OKF ou detalhes internos de navegação.
+- Quando uma regra não estiver documentada no conhecimento disponível, diga isso de forma natural em vez de presumir a resposta.
+`;
 
 type SettingsTab = "prompt" | "knowledge";
 
@@ -21,13 +34,10 @@ function getConnection() {
 }
 
 async function getAssistant(client: Client, assistantId: string): Promise<Assistant> {
-  try { return await client.assistants.get(assistantId); }
-  catch {
-    const assistants = await client.assistants.search({ graphId: assistantId, limit: 20, offset: 0 });
-    const assistant = assistants.find((item) => item.graph_id === assistantId);
-    if (!assistant) throw new Error("Nenhum assistant encontrado para este graph ID.");
-    return assistant;
-  }
+  const assistants = await client.assistants.search({ graphId: assistantId, limit: 20, offset: 0 });
+  const assistant = assistants.find((item) => item.graph_id === assistantId);
+  if (!assistant) throw new Error("Nenhum assistant encontrado para este graph ID.");
+  return assistant;
 }
 
 export function SystemPromptPanel(): React.ReactNode {
