@@ -6,6 +6,7 @@ import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
 import { KnowledgeEditor } from "@/components/knowledge-editor";
 import { OkfBundleImporter } from "@/components/okf-bundle-importer";
+import { RawOkfCompiler } from "@/components/raw-okf-compiler";
 import { ToolsPanel } from "@/components/tools-panel";
 
 const DEFAULT_PROMPT = `# System Prompt
@@ -23,7 +24,7 @@ Você é um agente de atendimento especializado em cobrança e negociação.
 - Quando uma regra não estiver documentada no conhecimento disponível, diga isso de forma natural em vez de presumir a resposta.
 `;
 
-type SettingsTab = "prompt" | "knowledge" | "tools";
+type SettingsTab = "prompt" | "knowledge" | "compiler" | "tools";
 
 function getConnection() {
   const params = new URLSearchParams(window.location.search);
@@ -97,11 +98,12 @@ export function SystemPromptPanel(): React.ReactNode {
     {!open && <button type="button" onClick={() => setOpen(true)} className="fixed right-14 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800" aria-label="Abrir configurações do agente" title="Configurações do agente"><Settings className="h-5 w-5" /></button>}
     {open && <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-6">
       <div className="flex max-h-[92vh] w-full max-w-5xl flex-col rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl dark:bg-neutral-950">
-        <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4 dark:border-neutral-800"><div><h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">Configurações do agente</h2><p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Prompt, conhecimento e tools disponíveis no runtime.</p></div><button type="button" onClick={() => setOpen(false)} className="ml-4 rounded-lg px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">Fechar</button></div>
+        <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4 dark:border-neutral-800"><div><h2 className="text-lg font-semibold text-neutral-950 dark:text-neutral-50">Configurações do agente</h2><p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Prompt, conhecimento, compiler e tools disponíveis no runtime.</p></div><button type="button" onClick={() => setOpen(false)} className="ml-4 rounded-lg px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">Fechar</button></div>
         <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
           <div className="flex gap-2 border-b border-neutral-200 p-3 sm:w-52 sm:flex-col sm:border-r sm:border-b-0 dark:border-neutral-800">
             <button type="button" onClick={() => setTab("prompt")} className={tabClass("prompt")}>System Prompt</button>
             <button type="button" onClick={() => setTab("knowledge")} className={tabClass("knowledge")}>Knowledge</button>
+            <button type="button" onClick={() => setTab("compiler")} className={tabClass("compiler")}>RAW Compiler</button>
             <button type="button" onClick={() => setTab("tools")} className={tabClass("tools")}>Tools</button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -110,6 +112,7 @@ export function SystemPromptPanel(): React.ReactNode {
               <div className="flex items-center justify-end gap-3 border-t border-neutral-200 px-5 py-4 dark:border-neutral-800">{saved && <span className="text-sm text-emerald-600 dark:text-emerald-400">Salvo no runtime</span>}<button type="button" onClick={() => void savePrompt()} disabled={!isDirty || loading || saving || !assistant} className="rounded-lg bg-neutral-950 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-neutral-950">{saving ? "Salvando..." : "Salvar"}</button></div>
             </>}
             {tab === "knowledge" && <div><div className="px-5 pt-5"><OkfBundleImporter onImported={() => setKnowledgeRevision((value) => value + 1)} /></div><KnowledgeEditor key={knowledgeRevision} /></div>}
+            {tab === "compiler" && <RawOkfCompiler />}
             {tab === "tools" && <ToolsPanel />}
           </div>
         </div>
