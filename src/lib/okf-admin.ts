@@ -2,16 +2,30 @@ import { Client } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
 
 type OkfAdminInput = {
-  operation: "status" | "list" | "read" | "write" | "import_bundle";
+  operation:
+    | "status"
+    | "list"
+    | "read"
+    | "write"
+    | "import_bundle"
+    | "create_draft"
+    | "list_drafts"
+    | "draft_list"
+    | "draft_read"
+    | "draft_write"
+    | "validate_draft"
+    | "publish_draft";
   bundle_name?: string;
   bundle_version?: string;
   files?: Record<string, string>;
   path?: string;
   content?: string;
+  draft_id?: string;
+  from_active?: boolean;
 };
 
 type OkfAdminState = {
-  result?: Record<string, unknown>;
+  result?: Record<string, unknown> | Array<Record<string, unknown>>;
   error?: string;
 };
 
@@ -30,7 +44,9 @@ async function getAdminAssistant(client: Client) {
   return assistant;
 }
 
-export async function runOkfAdmin(input: OkfAdminInput): Promise<Record<string, unknown>> {
+export async function runOkfAdmin(
+  input: OkfAdminInput,
+): Promise<Record<string, unknown> | Array<Record<string, unknown>>> {
   const { apiUrl, apiKey } = getConnection();
   if (!apiUrl) throw new Error("Deployment URL não configurada.");
   const client = new Client({ apiUrl, apiKey });
