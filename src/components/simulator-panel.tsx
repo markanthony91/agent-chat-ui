@@ -9,21 +9,20 @@ type SimulatorFixture = {
   full_name?: string;
   cpf?: string;
   birth_date?: string;
-  identity_validated?: boolean;
   institution?: string;
   product?: string;
   debt?: {
     debt_id?: string;
     contract_id?: string;
-    original_amount?: number;
-    current_amount?: number;
+    original_amount?: string;
+    current_amount?: string;
     due_date?: string;
     status?: string;
   };
   eligibility?: {
     can_negotiate?: boolean;
     max_installments?: number;
-    max_discount_percentage?: number;
+    max_discount_percentage?: string;
   };
 };
 
@@ -55,7 +54,7 @@ export function SimulatorPanel(): React.ReactNode {
     setMessage(null);
     try {
       await runOkfAdmin({ operation: "save_simulator_fixture", fixture });
-      setMessage("Fixture do simulador salva com sucesso.");
+      setMessage("Fixture salva. Inicie uma nova conversa para utilizar os novos dados.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Falha ao salvar fixture do simulador.");
     } finally {
@@ -70,7 +69,7 @@ export function SimulatorPanel(): React.ReactNode {
   const updateField = (path: string, value: unknown) => {
     const keys = path.split(".");
     setFixture((current) => {
-      const updated = { ...current };
+      const updated = structuredClone(current);
       let obj: Record<string, unknown> = updated;
       for (let i = 0; i < keys.length - 1; i++) {
         const key = keys[i]!;
@@ -96,11 +95,12 @@ export function SimulatorPanel(): React.ReactNode {
     const stringValue = value === undefined || value === null ? "" : String(value);
     return (
       <div key={path} className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-neutral-900 dark:text-white">{label}</label>
+        <label htmlFor={path} className="text-sm font-medium text-neutral-900 dark:text-white">{label}</label>
         <input
+          id={path}
           type={type}
           value={stringValue}
-          onChange={(e) => updateField(path, type === "number" ? (e.target.value ? parseFloat(e.target.value) : undefined) : e.target.value || undefined)}
+          onChange={(e) => updateField(path, path === "eligibility.max_installments" ? (e.target.value ? Number(e.target.value) : undefined) : e.target.value || undefined)}
           placeholder={placeholder}
           disabled={loading || saving}
           className="rounded-lg border bg-white px-3 py-2 text-sm outline-none focus:border-neutral-950 disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:border-white"
@@ -124,6 +124,7 @@ export function SimulatorPanel(): React.ReactNode {
     return (
       <div key={path} className="flex items-center gap-3">
         <input
+          id={path}
           type="checkbox"
           checked={checked}
           onChange={(e) => updateField(path, e.target.checked)}
@@ -141,7 +142,7 @@ export function SimulatorPanel(): React.ReactNode {
         <div>
           <h3 className="font-semibold">Simulator Fixture</h3>
           <p className="mt-1 text-sm text-neutral-500">
-            Configure dados de teste para simulação de negociação de dívida.
+            Configure dados sintéticos. As alterações se aplicam somente a novas conversas.
           </p>
         </div>
         <button
@@ -179,7 +180,7 @@ export function SimulatorPanel(): React.ReactNode {
               {inputField("Birth Date", "birth_date", "date")}
             </div>
             <div className="mt-4 flex flex-col gap-3">
-              {checkboxField("Identity Validated", "identity_validated")}
+              <p className="text-sm text-neutral-500">A identidade é validada pelas tools em cada conversa. Salvar esta fixture não autentica o cliente.</p>
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               {inputField("Institution", "institution", "text", "ex: Banco XYZ")}
@@ -241,4 +242,3 @@ export function SimulatorPanel(): React.ReactNode {
     </div>
   );
 }
-
