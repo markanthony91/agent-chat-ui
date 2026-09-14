@@ -2,7 +2,7 @@ import { Client } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
 
 type RawCompilerInput = {
-  operation: "analyze" | "create_draft";
+  operation: "analyze" | "create_draft" | "get_agents";
   source_name?: string;
   raw_text?: string;
   ingestion_id?: string;
