@@ -2,6 +2,47 @@ import { test, expect, Page } from "@playwright/test";
 
 const target = "/?apiUrl=http%3A%2F%2F127.0.0.1%3A3041&assistantId=agent";
 
+test("numeric post-stream warning persists without retracting or duplicating text", async ({
+  page,
+}) => {
+  await page.goto(target + "&hideToolCalls=true");
+  await send(page, "BAD_AMOUNT");
+  const text = page.getByText("Proposta inventada de R$ 999,99.", {
+    exact: true,
+  });
+  await expect(text).toBeVisible();
+  await expect(page.getByTestId("response-audit")).toContainText(
+    "Resposta requer revisão",
+  );
+  await expect(page.getByTestId("response-audit")).toContainText(
+    "Fidelidade semântica não avaliada",
+  );
+  await expect(text).toHaveCount(1);
+  await finished(page);
+  await page.reload();
+  await expect(text).toHaveCount(1);
+  await expect(page.getByTestId("response-audit")).toContainText(
+    "Resposta requer revisão",
+  );
+  for (const [width, height] of [
+    [1440, 900],
+    [1024, 768],
+    [390, 844],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await expect(page.getByTestId("response-audit")).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+    ).toBe(false);
+    await page.screenshot({
+      path: `test-results/post-stream-audit-${width}.png`,
+      fullPage: true,
+    });
+  }
+});
+
 async function send(page: Page, text: string) {
   const input = page.getByPlaceholder("Type your message...");
   await expect(input).toBeVisible();
@@ -82,12 +123,12 @@ test("real incremental protocol delivery, cancellation and consecutive calls", a
   page,
 }) => {
   await page.goto(target);
-  const start = Date.now();
+  const start = performance.now();
   await send(page, "LONG");
   await expect(
     page.getByText("STREAM_START", { exact: false }).last(),
   ).toBeVisible();
-  const firstText = Date.now() - start;
+  const firstText = Math.round(performance.now() - start);
   await page.screenshot({
     path: "test-results/first-text-stream.png",
     fullPage: true,
@@ -96,7 +137,7 @@ test("real incremental protocol delivery, cancellation and consecutive calls", a
   await expect(
     page.getByText("STREAM_END", { exact: false }).last(),
   ).toBeVisible();
-  const total = Date.now() - start;
+  const total = Math.round(performance.now() - start);
   console.log(
     JSON.stringify({
       scenario: "long-protocol-fixture",
@@ -192,11 +233,17 @@ test("admin panels use the same local backend and preserve decimal strings", asy
     page.getByText("Fixture salva.", { exact: false }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Knowledge", exact: true }).click();
-  await page.getByRole("button", { name: "INSTITUTIONS 1", exact: true }).click();
+  await page
+    .getByRole("button", { name: "INSTITUTIONS 1", exact: true })
+    .click();
   await expect(
     page.getByText("policy.md", { exact: false }).first(),
   ).toBeVisible();
-  await page.getByRole("button", { name: "fastpay/policy.md", exact: true }).click();
-  await expect(page.getByText("Synthetic policy", { exact: false }).first()).toBeVisible();
+  await page
+    .getByRole("button", { name: "fastpay/policy.md", exact: true })
+    .click();
+  await expect(
+    page.getByText("Synthetic policy", { exact: false }).first(),
+  ).toBeVisible();
   expect(unexpected).toEqual([]);
 });

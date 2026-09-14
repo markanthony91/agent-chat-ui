@@ -9,6 +9,7 @@ import { LoadExternalComponent } from "@langchain/langgraph-sdk/react-ui";
 import { cn } from "@/lib/utils";
 import { ToolCalls, ToolResult } from "./tool-calls";
 import { OfferConfirmation } from "./offer-confirmation";
+import { ResponseAudit } from "./response-audit";
 import { MessageContentComplex } from "@langchain/core/messages";
 import { Fragment } from "react/jsx-runtime";
 import { isAgentInboxInterruptSchema } from "@/lib/agent-inbox-interrupt";
@@ -174,6 +175,9 @@ export function AssistantMessage({
               <div className="py-1">
                 <MarkdownText>{contentString}</MarkdownText>
               </div>
+            )}
+            {message?.type === "ai" && !hasToolCalls && (
+              <ResponseAudit audit={message.additional_kwargs?.response_audit} />
             )}
 
             {!hideToolCalls && (

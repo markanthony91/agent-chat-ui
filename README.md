@@ -2,7 +2,13 @@
 
 Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
 
-## This fork: runtime audit corrections (0.1.0)
+## This fork: runtime audit corrections (0.1.1)
+
+Final messages can display the backend's post-stream numeric diagnostic.
+It explicitly distinguishes review required, no numeric mismatch detected and
+not evaluated. This does not approve semantic fidelity or protect text already
+streamed. No token buffering/rewrite, no duplicated assistant message, no changes
+to the WhatsApp or Lovable applications. This candidate still requires publication.
 
 See [Runtime integration and validation](docs/RUNTIME_AUDIT.md) for the shared
 backend connection, per-conversation synthetic identity, decimal-safe simulator,
