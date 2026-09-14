@@ -31,9 +31,10 @@ export function OkfVersionsPanel({ onActivated }: Props): React.ReactNode {
 
   const activate = async (version: Version) => {
     if (version.active) return;
+    if (!window.confirm("Aprovar a ativação desta versão? Conversas existentes mantêm o snapshot anterior.")) return;
     setBusy(true); setMessage(null);
     try {
-      await runOkfAdmin({ operation: "activate_bundle", bundle_id: version.bundle_id });
+      await runOkfAdmin({ operation: "activate_bundle", approved: true, bundle_id: version.bundle_id });
       setMessage(`Versão ativada: ${version.bundle_name || version.bundle_id}`);
       await load();
       onActivated?.();
@@ -60,7 +61,7 @@ export function OkfVersionsPanel({ onActivated }: Props): React.ReactNode {
             {version.active && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">Ativa</span>}
           </div>
           <p className="mt-1 break-all text-xs text-neutral-400">{version.bundle_id}</p>
-          <p className="mt-1 text-xs text-neutral-500">OKF {version.bundle_version || "0.2"} · {version.file_count ?? 0} arquivos{version.published_at ? ` · ${new Date(version.published_at).toLocaleString()}` : ""}</p>
+          <p className="mt-1 text-xs text-neutral-500">OKF {version.bundle_version || "0.2"} · {version.file_count ?? 0} arquivos{version.published_at ? ` · ${new Date(version.published_at).toLocaleString("pt-BR")}` : ""}</p>
         </div>
         {!version.active && <button onClick={() => void activate(version)} disabled={busy} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm disabled:opacity-40"><RotateCcw className="h-4 w-4" />Ativar / rollback</button>}
       </div>)}

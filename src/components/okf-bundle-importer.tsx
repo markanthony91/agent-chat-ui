@@ -25,9 +25,10 @@ export function OkfBundleImporter({ onImported }: Props): React.ReactNode {
 
   const importBundle = async () => {
     if (!bundle) return;
+    if (!window.confirm("Aprovar a importação e ativação deste bundle completo? Para adicionar um documento, use a ingestão RAW.")) return;
     setImporting(true); setError(null);
     try {
-      const result = await runOkfAdmin({ operation: "import_bundle", bundle_name: bundle.name, bundle_version: bundle.version, files: bundle.files });
+      const result = await runOkfAdmin({ operation: "import_bundle", approved: true, bundle_name: bundle.name, bundle_version: bundle.version, files: bundle.files });
       const count = typeof result.file_count === "number" ? result.file_count : bundle.paths.length;
       setSuccess(`Bundle ${bundle.name} persistido com ${count} arquivos.`);
       setBundle(null);

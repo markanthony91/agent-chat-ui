@@ -8,6 +8,7 @@ import { MarkdownText } from "../markdown-text";
 import { LoadExternalComponent } from "@langchain/langgraph-sdk/react-ui";
 import { cn } from "@/lib/utils";
 import { ToolCalls, ToolResult } from "./tool-calls";
+import { OfferConfirmation } from "./offer-confirmation";
 import { MessageContentComplex } from "@langchain/core/messages";
 import { Fragment } from "react/jsx-runtime";
 import { isAgentInboxInterruptSchema } from "@/lib/agent-inbox-interrupt";
@@ -143,6 +144,15 @@ export function AssistantMessage({
   const isToolResult = message?.type === "tool";
 
   if (isToolResult && hideToolCalls) {
+    if (message.name === "generate_offer" && typeof message.content === "string") {
+      let offer: Record<string, unknown> | null = null;
+      try {
+        const parsed: unknown = JSON.parse(message.content);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed))
+          offer = parsed as Record<string, unknown>;
+      } catch { /* Invalid tool output is not a confirmable offer. */ }
+      return offer ? <OfferConfirmation offer={offer} /> : null;
+    }
     return null;
   }
 

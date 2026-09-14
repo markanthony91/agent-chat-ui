@@ -93,6 +93,7 @@ const StreamSession = ({
       },
     }),
     threadId: threadId ?? null,
+    reconnectOnMount: true,
     fetchStateHistory: true,
     onCustomEvent: (event, options) => {
       if (isUIMessage(event) || isRemoveUIMessage(event)) {
