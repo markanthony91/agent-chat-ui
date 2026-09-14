@@ -1,5 +1,12 @@
 # Runtime integration changes (0.1.0)
 
+Subsequent publication on 2026-09-14: Railway deployment
+4e662b1a-1927-47cc-aeae-5f9b8b4be0c2, runtime source 524cfe1. Published browser
+Qwen/utc_now smoke passed with no JS errors and text preserved after reload:
+first text 3863 ms, total 4672 ms. This is not the full financial E2E suite.
+Backend release evidence is in its docs/RELEASE_2026-09-14.md. The local baseline
+and its limitations below describe the checks before this publication.
+
 Companion backend: simple-agent-template 0.2.0, branch fix/runtime-audit-six-items.
 
 - Chat, OKF administration, simulator and RAW use the same apiUrl / NEXT_PUBLIC_API_URL.
