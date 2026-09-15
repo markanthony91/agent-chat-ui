@@ -271,6 +271,11 @@ const streamValue = useTypedStream({
 ```
 # Direct pilot link
 
+[Published chat](https://agent-chat-ui-fork-production.up.railway.app/) — 0.1.1,
+validated with real Qwen on 2026-09-15. Optional `tests/e2e/published.spec.ts`
+requires PUBLISHED_CHAT_URL, PUBLISHED_RUNTIME_URL and PUBLISHED_EXPECTED_MODEL;
+without them it skips live calls. It sends two read-only synthetic turns.
+
 Set `NEXT_PUBLIC_API_URL` to the intended LangGraph runtime and
 `NEXT_PUBLIC_ASSISTANT_ID=agent` **before building**. A clean browser then opens
 the chat directly without connection setup or provider credentials. Share the
