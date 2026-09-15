@@ -29,6 +29,15 @@
   tools, post-stream audit, history/reload, zero page errors and three widths.
   First visible text 3958 ms, total first turn 4153 ms (single UTC scenario).
   The deployed model was Qwen/Qwen3-30B-A3B-Instruct-2507-FP8 from backend 0.2.2.
+## Agente Zerai — 0.1.3
+
+- Rename visible chat/connection titles and page metadata; runtime unchanged.
+- Stacked on the published header-settings branch to preserve current UI.
+- Typecheck/build pass; targeted lint has zero errors and four pre-existing
+  warnings. Six browser checks pass at 1440/1024/390px (empty and active chat),
+  checking visible name, page title, settings and horizontal overflow.
+- Publication pending; backend is unchanged.
+
 ## Header settings — 0.1.2
 
 - Replace both header GitHub links with the existing settings action and remove

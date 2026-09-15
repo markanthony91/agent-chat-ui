@@ -29,6 +29,9 @@ for (const width of [1440, 1024, 390]) {
       url.searchParams.set("assistantId", "agent");
       if (started) url.searchParams.set("threadId", "test-thread");
       await page.goto(url.toString());
+      await expect(page).toHaveTitle("Agente Zerai");
+      await expect(page.getByText("Agente Zerai", { exact: true })).toBeVisible();
+      await expect(page.getByText("Agent Chat", { exact: true })).toHaveCount(0);
       const gear = page.getByRole("button", {
         name: "Abrir configurações",
         exact: true,
