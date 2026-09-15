@@ -39,7 +39,11 @@
 - Local UI against published backend 0.2.3 verified eleven real descriptions/schemas,
   zero page errors and only list_tools. First attempt hit a stopped local server;
   retry after restarting that test server passed. No real LLM calls.
-- Publication pending.
+- Published source 785c595 / frontend 0.1.4, Railway deployment
+  1d976f00-d066-4abb-9bfb-e5c2a142df65 (SUCCESS), container version confirmed.
+- Nine browser tests pass against published UI with mocked API. A separate live
+  backend/UI inspection verifies all eleven schemas and descriptions, zero page
+  errors, only list_tools, no tool execution or setting changes.
 
 ## Agente Zerai — 0.1.3
 
@@ -48,7 +52,8 @@
 - Typecheck/build pass; targeted lint has zero errors and four pre-existing
   warnings. Six browser checks pass at 1440/1024/390px (empty and active chat),
   checking visible name, page title, settings and horizontal overflow.
-- Publication pending; backend is unchanged.
+- Published source c5dd9c1 / frontend 0.1.3 as deployment
+  572bf1d5-0fa5-4b18-80ee-870ab30bf61f (SUCCESS). Name also verified in 0.1.4.
 
 ## Header settings — 0.1.2
 
