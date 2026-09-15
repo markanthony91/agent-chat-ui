@@ -29,6 +29,15 @@
   tools, post-stream audit, history/reload, zero page errors and three widths.
   First visible text 3958 ms, total first turn 4153 ms (single UTC scenario).
   The deployed model was Qwen/Qwen3-30B-A3B-Instruct-2507-FP8 from backend 0.2.2.
+## Tool usage details — 0.1.4
+
+- Reuse Tools panel to display actual model descriptions and public parameters.
+- Read-only disclosure; existing enable/disable behavior preserved.
+- Typecheck/build pass; targeted lint has no errors and one existing effect warning.
+- Nine browser tests pass: name/header regression plus tool details at three widths,
+  keyboard disclosure, legacy backend, error response, no execution operations.
+- Publication pending.
+
 ## Agente Zerai — 0.1.3
 
 - Rename visible chat/connection titles and page metadata; runtime unchanged.

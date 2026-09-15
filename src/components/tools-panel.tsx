@@ -8,6 +8,8 @@ import { runToolAdmin } from "@/lib/tool-admin";
 type ToolRecord = {
   name: string;
   description?: string;
+  usage_description?: string;
+  parameters?: Record<string, unknown>;
   category?: string;
   enabled?: boolean;
   mode?: string;
@@ -95,8 +97,17 @@ export function ToolsPanel(): React.ReactNode {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm font-semibold">{item.name}</span><span className="rounded-full border px-2 py-0.5 text-[11px] text-neutral-500">{item.mode || "read_only"}</span><span className="rounded-full border px-2 py-0.5 text-[11px] text-neutral-500">risk: {item.risk || "low"}</span>{item.requires_auth && <span className="rounded-full border px-2 py-0.5 text-[11px] text-neutral-500">auth</span>}</div>
               <p className="mt-1 text-sm text-neutral-500">{item.description || "Sem descrição."}</p>
+              <details className="mt-3 rounded-lg border p-3">
+                <summary className="cursor-pointer text-sm font-medium">Detalhes de uso</summary>
+                <p className="mt-3 text-xs text-neutral-500">Contrato enviado à LLM quando esta ferramenta está habilitada. Somente leitura; as validações de execução continuam no backend.</p>
+                <h4 className="mt-3 text-sm font-medium">Descrição enviada à LLM</h4>
+                <p className="mt-1 whitespace-pre-wrap break-words text-sm">{typeof item.usage_description === "string" ? item.usage_description : "Descrição de uso indisponível nesta versão do backend."}</p>
+                <h4 className="mt-3 text-sm font-medium">Parâmetros (JSON Schema)</h4>
+                <p className="mt-1 text-xs text-neutral-500">properties lista os campos; required indica os obrigatórios. Dados da sessão injetados pelo backend não são argumentos da LLM.</p>
+                {item.parameters ? <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap break-all rounded bg-neutral-100 p-3 text-xs dark:bg-neutral-900">{JSON.stringify(item.parameters, null, 2)}</pre> : <p className="mt-2 text-sm text-neutral-500">Parâmetros indisponíveis nesta versão do backend.</p>}
+              </details>
             </div>
-            <div className="flex items-center gap-2"><span className="text-xs text-neutral-400">{item.enabled ? "ON" : "OFF"}</span><Switch checked={item.enabled === true} disabled={changing === item.name || loading} onCheckedChange={(value) => void toggle(item, value)} /></div>
+            <div className="flex items-center gap-2"><span className="text-xs text-neutral-400">{item.enabled ? "ON" : "OFF"}</span><Switch aria-label={`Habilitar ${item.name}`} checked={item.enabled === true} disabled={changing === item.name || loading} onCheckedChange={(value) => void toggle(item, value)} /></div>
           </div>)}
         </div>
       </section>)}
