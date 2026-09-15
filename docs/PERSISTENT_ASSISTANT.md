@@ -47,6 +47,17 @@ mocked in that suite. Published checks and restart evidence are recorded separat
 Local Turbopack cannot build with the worktree's external node_modules symlink;
 the webpack build validates the same source without changing project dependencies.
 
+Published frontend 0.1.8: deployment `94b058c8-6ed0-462c-bb22-ca0defadc258`,
+source `e1012dd`, SUCCESS. The unchanged backend 0.2.5 was restarted under
+deployment `e999c575-d2f4-4648-a26a-16565613d077`. Its system assistant was
+recreated at 20:25:55 UTC; the managed assistant retained its original creation
+time, exact context and prompt hash. All 24 exported conversation states matched.
+The real published browser loaded the original prompt and retained it after
+reload. A real LLM conversation used the managed UUID:
+`01a0a6c2-87d6-7f93-ba85-03393e108e6c`; no browser JavaScript error.
+Separate finding: that reply echoed a template placeholder already present in
+the original user-authored prompt. Prompt content was intentionally not rewritten.
+
 No backend runtime code or financial/security logic was changed. Retain the
 single Railway replica, /data volume, exec start command and graceful shutdown.
 Native dev persistence flushes periodically (10 seconds in the installed version);
