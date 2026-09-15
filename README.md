@@ -2,7 +2,13 @@
 
 Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
 
-## This fork: runtime audit corrections (0.1.0)
+## This fork: runtime audit corrections (0.1.1)
+
+Final messages can display the backend's post-stream numeric diagnostic.
+It explicitly distinguishes review required, no numeric mismatch detected and
+not evaluated. This does not approve semantic fidelity or protect text already
+streamed. No token buffering/rewrite, no duplicated assistant message, no changes
+to the WhatsApp or Lovable applications. This candidate still requires publication.
 
 See [Runtime integration and validation](docs/RUNTIME_AUDIT.md) for the shared
 backend connection, per-conversation synthetic identity, decimal-safe simulator,
@@ -263,3 +269,19 @@ const streamValue = useTypedStream({
   },
 });
 ```
+# Direct pilot link
+
+[Published chat](https://agent-chat-ui-fork-production.up.railway.app/) — 0.1.1,
+validated with real Qwen on 2026-09-15. Optional `tests/e2e/published.spec.ts`
+requires PUBLISHED_CHAT_URL, PUBLISHED_RUNTIME_URL and PUBLISHED_EXPECTED_MODEL;
+without them it skips live calls. It sends two read-only synthetic turns.
+
+Set `NEXT_PUBLIC_API_URL` to the intended LangGraph runtime and
+`NEXT_PUBLIC_ASSISTANT_ID=agent` **before building**. A clean browser then opens
+the chat directly without connection setup or provider credentials. Share the
+site root, without `threadId`, so the visitor starts a new conversation.
+The backend pins the model with `LLM_MODEL`; this frontend does not choose it.
+Existing explicit runtime query parameters still work for operator diagnostics.
+This does not create a restricted guest account: the existing anonymous lab
+exposes operator controls/history. Share only with authorized testers and use
+synthetic data. Never put an LLM key in a URL or a `NEXT_PUBLIC_` variable.

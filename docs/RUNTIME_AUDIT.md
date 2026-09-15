@@ -1,5 +1,19 @@
 # Runtime integration changes (0.1.0)
 
+## Candidate 0.1.1
+
+Optional `additional_kwargs.response_audit` is shown beside the same assistant
+message after generation. It reports bounded numeric review, never semantic
+approval or protection against already-streamed text. Old servers/messages without
+this field still render normally. The warning persists after reload.
+Ten local browser checks passed; first visible text 1435 ms / total 4341 ms for
+the synthetic streaming fixture. These are not Qwen/browser production timings.
+The test now uses monotonic performance.now after a Date.now sample showed
+wall-clock discontinuity; that invalid sample is not reported as performance.
+Backend candidate 0.2.1 was tested separately against real Qwen in isolated
+temporary storage; see its docs/OKF_INGESTION_GROUNDING.md. Neither candidate is
+published by this documentation. Previous published evidence follows below.
+
 Subsequent publication on 2026-09-14: Railway deployment
 4e662b1a-1927-47cc-aeae-5f9b8b4be0c2, runtime source 524cfe1. Published browser
 Qwen/utc_now smoke passed with no JS errors and text preserved after reload:
