@@ -1,5 +1,18 @@
 # Runtime audit fixes
 
+- Published 0.1.6 / 914aeb1: deployment ebf30064-72a2-419f-8742-7ba605da20f1.
+  Dataset and persisted identity controls verified with real backend in Chromium.
+  Twelve published browser cases also pass (mocked API); no JS errors in live inspection.
+  Backend 0.2.5 / 4cc6424 successfully validates partial CPF + name with Qwen.
+
+- Requested follow-up: rename Knowledge tab/title to Dataset (0.1.6), no data migration.
+
+- Identity configuration 0.1.5: native controls in the existing Simulator panel.
+- 12 local Playwright cases passed at 1440/1024/390 widths, including save/reload,
+  errors, tool-contract panel and header regressions. API mocked in these cases.
+- Typecheck and build pass; targeted lint zero errors, one pre-existing effect warning.
+- Publication and real-backend browser verification pending.
+
 - [x] One backend connection for chat, OKF, tools and RAW.
 - [x] Explicit approval for publish/activate/import.
 - [x] Decimal strings and per-conversation identity explanation in simulator.

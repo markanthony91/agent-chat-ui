@@ -83,7 +83,7 @@ export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: 
             {tabButton("prompt", "System Prompt")}
             {tabButton("instructions", "Agent Instructions")}
             {tabButton("workflows", "Workflows")}
-            {tabButton("knowledge", "Knowledge")}
+            {tabButton("knowledge", "Dataset")}
             {tabButton("compiler", "RAW Compiler")}
             {tabButton("tools", "Tools")}
             {tabButton("simulator", "Simulator")}

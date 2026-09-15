@@ -71,7 +71,7 @@ export function KnowledgeEditor(): React.ReactNode {
 
   return <div className="p-5">
     <div className="flex items-start justify-between gap-3">
-      <div><h3 className="font-semibold">Knowledge</h3><p className="mt-1 text-sm text-neutral-500">{bundleName} · OKF {bundleVersion} · storage persistente</p></div>
+      <div><h3 className="font-semibold">Dataset</h3><p className="mt-1 text-sm text-neutral-500">{bundleName} · OKF {bundleVersion} · storage persistente</p></div>
       <button onClick={() => void load()} disabled={loading} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />Atualizar</button>
     </div>
     {error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</div>}
@@ -81,7 +81,7 @@ export function KnowledgeEditor(): React.ReactNode {
     <div className="mt-4 flex items-center gap-2 rounded-lg border px-3 py-2"><Search className="h-4 w-4 shrink-0 text-neutral-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar arquivo por nome ou path..." className="min-w-0 flex-1 bg-transparent text-sm outline-none" />{query && <button onClick={() => setQuery("")} aria-label="Limpar busca"><X className="h-4 w-4 text-neutral-400" /></button>}</div>
     <div className="mt-5 grid min-h-[52vh] grid-cols-1 gap-4 md:grid-cols-[280px_1fr]">
       <div className="max-h-[58vh] overflow-auto rounded-xl border p-3">
-        <div className="mb-3 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-neutral-400"><span>knowledge/okf</span><span>{filteredFiles.length}</span></div>
+        <div className="mb-3 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-neutral-400"><span>Dataset OKF</span><span>{filteredFiles.length}</span></div>
         {loading && files.length === 0 && <p className="px-2 py-3 text-sm text-neutral-500">Carregando storage...</p>}
         {!loading && files.length === 0 && <p className="px-2 py-3 text-sm text-neutral-500">Nenhum bundle OKF ativo no storage persistente.</p>}
         {folders.map((folder) => {

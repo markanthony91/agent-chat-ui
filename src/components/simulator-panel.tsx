@@ -11,6 +11,11 @@ type SimulatorFixture = {
   birth_date?: string;
   institution?: string;
   product?: string;
+  identity_policy?: {
+    cpf_mode: "full" | "first4" | "last4";
+    secondary: "full_name" | "birth_date" | "both" | "either";
+    max_attempts: number;
+  };
   debt?: {
     debt_id?: string;
     contract_id?: string;
@@ -40,7 +45,9 @@ export function SimulatorPanel(): React.ReactNode {
     try {
       const result = await runOkfAdmin({ operation: "get_simulator_fixture" });
       const data = (result && typeof result === "object") ? result as SimulatorFixture : {};
-      setFixture(data);
+      setFixture({ ...data, identity_policy: data.identity_policy || {
+        cpf_mode: "full", secondary: "either", max_attempts: 3,
+      } });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Falha ao carregar fixture do simulador.");
     } finally {
@@ -53,7 +60,8 @@ export function SimulatorPanel(): React.ReactNode {
     setError(null);
     setMessage(null);
     try {
-      await runOkfAdmin({ operation: "save_simulator_fixture", fixture });
+      const result = await runOkfAdmin({ operation: "save_simulator_fixture", fixture });
+      setFixture(result as SimulatorFixture);
       setMessage("Fixture salva. Inicie uma nova conversa para utilizar os novos dados.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Falha ao salvar fixture do simulador.");
@@ -131,7 +139,7 @@ export function SimulatorPanel(): React.ReactNode {
           disabled={loading || saving}
           className="h-4 w-4 rounded border accent-neutral-950 dark:accent-white"
         />
-        <label className="text-sm font-medium text-neutral-900 dark:text-white">{label}</label>
+        <label htmlFor={path} className="text-sm font-medium text-neutral-900 dark:text-white">{label}</label>
       </div>
     );
   };
@@ -187,6 +195,49 @@ export function SimulatorPanel(): React.ReactNode {
               {inputField("Product", "product", "text", "ex: Credit Card")}
             </div>
           </div>
+        </section>
+
+        <section aria-labelledby="identity-heading" className="rounded-xl border p-4">
+          <h4 id="identity-heading" className="font-semibold">Validação de identidade</h4>
+          <p className="my-3 text-sm text-neutral-500">
+            Todos os fatores selecionados são obrigatórios. O backend informa a regra à LLM
+            e valida os dados; editar o prompt não dispensa essa checagem.
+            Uso exclusivo com dados sintéticos: não é autenticação forte para clientes reais.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="identity-cpf">Conferência do CPF</label>
+              <select id="identity-cpf" className="rounded-lg border bg-background p-2"
+                disabled={loading || saving} value={fixture.identity_policy?.cpf_mode || "full"}
+                onChange={(e) => updateField("identity_policy.cpf_mode", e.target.value)}>
+                <option value="full">CPF completo</option>
+                <option value="first4">Primeiros 4 dígitos</option>
+                <option value="last4">Últimos 4 dígitos</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="identity-secondary">Fator adicional</label>
+              <select id="identity-secondary" className="rounded-lg border bg-background p-2"
+                disabled={loading || saving} value={fixture.identity_policy?.secondary || "either"}
+                onChange={(e) => updateField("identity_policy.secondary", e.target.value)}>
+                <option value="full_name">Nome completo</option>
+                <option value="birth_date">Data de nascimento</option>
+                <option value="both">Nome completo e data de nascimento</option>
+                <option value="either">Nome ou nascimento (legado)</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="identity-attempts">Máximo de tentativas</label>
+              <input id="identity-attempts" type="number" min={1} max={10} step={1}
+                className="rounded-lg border bg-background p-2" disabled={loading || saving}
+                value={fixture.identity_policy?.max_attempts ?? 3}
+                onChange={(e) => updateField("identity_policy.max_attempts", Number(e.target.value))} />
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-neutral-500">
+            Após o limite, a conversa exige atendimento humano. Salve e abra uma nova
+            conversa para aplicar mudanças; conversas existentes mantêm a regra anterior.
+          </p>
         </section>
 
         {/* Debt Section */}
