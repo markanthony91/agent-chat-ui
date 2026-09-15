@@ -1,4 +1,7 @@
-# Agent Chat UI
+# Agente Zerai
+
+Frontend 0.1.3 displays Agente Zerai in the chat, connection screen and browser
+title. Built on Agent Chat UI; repository identifiers and runtime are unchanged.
 
 Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
 
