@@ -29,3 +29,16 @@
   tools, post-stream audit, history/reload, zero page errors and three widths.
   First visible text 3958 ms, total first turn 4153 ms (single UTC scenario).
   The deployed model was Qwen/Qwen3-30B-A3B-Instruct-2507-FP8 from backend 0.2.2.
+## Header settings — 0.1.2
+
+- Replace both header GitHub links with the existing settings action and remove
+  the floating trigger. Panel remains mounted at page level to preserve its state.
+- Stacked on the published OKF branch; no backend changes. Typecheck/build pass;
+  changed-file lint has zero errors and two existing ref warnings. Six browser
+  checks pass (empty/active chat at 1440, 1024 and 390 widths), including keyboard
+  activation and panel close.
+- Published frontend source 068e974 as deployment
+  8670d040-adb0-4c62-8527-229a69c25698 (SUCCESS); container version 0.1.2
+  confirmed. The same six browser checks pass against the published UI with
+  mocked runtime responses (no LLM calls or production configuration writes).
+- PR: https://github.com/markanthony91/agent-chat-ui/pull/7.

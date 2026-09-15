@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Settings } from "lucide-react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
 import { KnowledgeEditor } from "@/components/knowledge-editor";
@@ -32,8 +31,7 @@ async function findAssistant(client: Client, graphId: string): Promise<Assistant
   return record;
 }
 
-export function AgentSettingsPanel(): React.ReactNode {
-  const [open, setOpen] = useState(false);
+export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: () => void }): React.ReactNode {
   const [tab, setTab] = useState<Tab>("prompt");
   const [assistant, setAssistant] = useState<Assistant | null>(null);
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
@@ -77,10 +75,9 @@ export function AgentSettingsPanel(): React.ReactNode {
   const tabButton = (name: Tab, label: string) => <button type="button" onClick={() => setTab(name)} className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-medium sm:w-full sm:whitespace-normal ${tab === name ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-900"}`}>{label}</button>;
 
   return <>
-    {!open && <button type="button" onClick={() => setOpen(true)} className="fixed right-14 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800" aria-label="Abrir configurações"><Settings className="h-5 w-5" /></button>}
     {open && <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-6">
       <div className="flex max-h-[92vh] w-full max-w-5xl flex-col rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl dark:bg-neutral-950">
-        <div className="flex items-start justify-between border-b px-5 py-4 dark:border-neutral-800"><div><h2 className="text-lg font-semibold">Configurações do agente</h2><p className="mt-1 text-sm text-neutral-500">Identidade, operação, processos, conhecimento e recursos.</p></div><button onClick={() => setOpen(false)} className="rounded-lg px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">Fechar</button></div>
+        <div className="flex items-start justify-between border-b px-5 py-4 dark:border-neutral-800"><div><h2 className="text-lg font-semibold">Configurações do agente</h2><p className="mt-1 text-sm text-neutral-500">Identidade, operação, processos, conhecimento e recursos.</p></div><button onClick={onClose} className="rounded-lg px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">Fechar</button></div>
         <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
           <div className="flex w-full flex-none gap-2 overflow-x-auto overscroll-x-contain border-b p-3 touch-pan-x sm:w-52 sm:flex-col sm:overflow-x-visible sm:border-r sm:border-b-0 dark:border-neutral-800">
             {tabButton("prompt", "System Prompt")}
