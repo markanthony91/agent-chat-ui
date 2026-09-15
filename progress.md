@@ -29,6 +29,22 @@
   tools, post-stream audit, history/reload, zero page errors and three widths.
   First visible text 3958 ms, total first turn 4153 ms (single UTC scenario).
   The deployed model was Qwen/Qwen3-30B-A3B-Instruct-2507-FP8 from backend 0.2.2.
+## Tool usage details — 0.1.4
+
+- Reuse Tools panel to display actual model descriptions and public parameters.
+- Read-only disclosure; existing enable/disable behavior preserved.
+- Typecheck/build pass; targeted lint has no errors and one existing effect warning.
+- Nine browser tests pass: name/header regression plus tool details at three widths,
+  keyboard disclosure, legacy backend, error response, no execution operations.
+- Local UI against published backend 0.2.3 verified eleven real descriptions/schemas,
+  zero page errors and only list_tools. First attempt hit a stopped local server;
+  retry after restarting that test server passed. No real LLM calls.
+- Published source 785c595 / frontend 0.1.4, Railway deployment
+  1d976f00-d066-4abb-9bfb-e5c2a142df65 (SUCCESS), container version confirmed.
+- Nine browser tests pass against published UI with mocked API. A separate live
+  backend/UI inspection verifies all eleven schemas and descriptions, zero page
+  errors, only list_tools, no tool execution or setting changes.
+
 ## Agente Zerai — 0.1.3
 
 - Rename visible chat/connection titles and page metadata; runtime unchanged.
@@ -36,7 +52,8 @@
 - Typecheck/build pass; targeted lint has zero errors and four pre-existing
   warnings. Six browser checks pass at 1440/1024/390px (empty and active chat),
   checking visible name, page title, settings and horizontal overflow.
-- Publication pending; backend is unchanged.
+- Published source c5dd9c1 / frontend 0.1.3 as deployment
+  572bf1d5-0fa5-4b18-80ee-870ab30bf61f (SUCCESS). Name also verified in 0.1.4.
 
 ## Header settings — 0.1.2
 

@@ -1,5 +1,9 @@
 # Agente Zerai
 
+Frontend 0.1.4 adds read-only tool usage details under Settings > Tools:
+actual model-facing descriptions and public JSON input schemas from runtime 0.2.3.
+Older backends show unavailable fields explicitly; no tool execution is triggered.
+
 Frontend 0.1.3 displays Agente Zerai in the chat, connection screen and browser
 title. Built on Agent Chat UI; repository identifiers and runtime are unchanged.
 
