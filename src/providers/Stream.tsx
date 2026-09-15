@@ -25,6 +25,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { getApiKey } from "@/lib/api-key";
 import { useThreads } from "./Thread";
 import { toast } from "sonner";
+import { resolveAssistant } from "@/lib/assistant-config";
+import { createClient } from "./client";
 
 export type StateType = { messages: Message[]; ui?: UIMessage[] };
 
@@ -68,7 +70,7 @@ async function checkGraphStatus(
   }
 }
 
-const StreamSession = ({
+const ConnectedStreamSession = ({
   children,
   apiKey,
   apiUrl,
@@ -135,6 +137,26 @@ const StreamSession = ({
     </StreamContext.Provider>
   );
 };
+
+function StreamSession(props: React.ComponentProps<typeof ConnectedStreamSession>) {
+  const [resolved, setResolved] = useState<{ key: string; id: string } | null>(null);
+  const [error, setError] = useState<{ key: string; message: string } | null>(null);
+  const { apiUrl, apiKey, assistantId, authScheme } = props;
+  const key = JSON.stringify([apiUrl, apiKey, assistantId, authScheme]);
+  useEffect(() => {
+    let active = true;
+    const client = createClient(apiUrl, apiKey ?? undefined, authScheme);
+    resolveAssistant(client, assistantId).then((record) => {
+      if (active) setResolved({ key, id: record.assistant_id });
+    }).catch(() => {
+      if (active) setError({ key, message: "Não foi possível carregar o assistente. Recarregue para tentar novamente." });
+    });
+    return () => { active = false; };
+  }, [apiUrl, apiKey, assistantId, authScheme, key]);
+  if (error?.key === key) return <p role="alert" className="p-6">{error.message}</p>;
+  if (resolved?.key !== key) return <p role="status" className="p-6">Carregando assistente...</p>;
+  return <ConnectedStreamSession {...props} assistantId={resolved.id} />;
+}
 
 // Default values for the form
 const DEFAULT_API_URL = "http://localhost:2024";

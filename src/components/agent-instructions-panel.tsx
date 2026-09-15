@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { RefreshCw, Save } from "lucide-react";
 import { getApiKey } from "@/lib/api-key";
+import { resolveAssistant, saveAssistantContext } from "@/lib/assistant-config";
 
 const DEFAULT_AGENTS_URL =
   "https://raw.githubusercontent.com/markanthony91/simple-agent-template/main/config/AGENTS.md";
@@ -15,13 +16,6 @@ function getConnection() {
     assistantId: params.get("assistantId") || process.env.NEXT_PUBLIC_ASSISTANT_ID || "agent",
     apiKey: getApiKey() || undefined,
   };
-}
-
-async function getAssistant(client: Client, graphId: string): Promise<Assistant> {
-  const assistants = await client.assistants.search({ graphId, limit: 20, offset: 0 });
-  const assistant = assistants.find((item) => item.graph_id === graphId);
-  if (!assistant) throw new Error("Assistant não encontrado.");
-  return assistant;
 }
 
 async function loadDefaultAgents(): Promise<string> {
@@ -47,7 +41,7 @@ export function AgentInstructionsPanel(): React.ReactNode {
         const { apiUrl, assistantId, apiKey } = getConnection();
         if (!apiUrl) throw new Error("Deployment URL não configurada.");
         const client = new Client({ apiUrl, apiKey });
-        const record = await getAssistant(client, assistantId);
+        const record = await resolveAssistant(client, assistantId);
         const context = (record.context ?? {}) as Record<string, unknown>;
         const override = typeof context.agent_instructions === "string" ? context.agent_instructions.trim() : "";
         const content = override || await loadDefaultAgents();
@@ -79,10 +73,7 @@ export function AgentInstructionsPanel(): React.ReactNode {
     try {
       const { apiUrl, apiKey } = getConnection();
       const client = new Client({ apiUrl, apiKey });
-      const currentContext = (assistant.context ?? {}) as Record<string, unknown>;
-      const updated = await client.assistants.update(assistant.assistant_id, {
-        context: { ...currentContext, agent_instructions: value },
-      });
+      const updated = await saveAssistantContext(client, assistant.assistant_id, { agent_instructions: value });
       setAssistant(updated); setSavedValue(value); setSource("override");
       setMessage("Agent Instructions salvas como override deste Assistant.");
     } catch (cause) {

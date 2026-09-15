@@ -1,5 +1,14 @@
 # Agente Zerai
 
+Frontend 0.1.8 resolves the operator-managed default assistant for both chat and
+settings (`metadata.zerai_default=true`). Explicit assistant UUIDs remain exact.
+System Prompt, AGENTS and workflows save to that same persistent assistant, read
+the latest context before updating, and confirm the read-back before showing saved.
+Editing system-created assistants is rejected: LangGraph dev recreates them at
+startup. Provision one regular assistant per graph before enabling edits.
+This retains the existing single-replica volume/flush limitations; it is not a
+transactional database replacement or a guarantee against abrupt host failure.
+
 Frontend 0.1.7: Dataset now has a real nested folder browser. The filter lives
 inside the file panel, matches names/paths ignoring case and accents, opens matching
 branches and shows result counts. Folders open independently, directories sort

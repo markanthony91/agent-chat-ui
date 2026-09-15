@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
+import { resolveAssistant, saveAssistantContext } from "@/lib/assistant-config";
 import { KnowledgeEditor } from "@/components/knowledge-editor";
 import { OkfBundleImporter } from "@/components/okf-bundle-importer";
 import { RawOkfCompiler } from "@/components/raw-okf-compiler";
@@ -35,13 +36,6 @@ function getConnection() {
   };
 }
 
-async function getAssistant(client: Client, assistantId: string): Promise<Assistant> {
-  const assistants = await client.assistants.search({ graphId: assistantId, limit: 20, offset: 0 });
-  const assistant = assistants.find((item) => item.graph_id === assistantId);
-  if (!assistant) throw new Error("Nenhum assistant encontrado para este graph ID.");
-  return assistant;
-}
-
 export function SystemPromptPanel(): React.ReactNode {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("prompt");
@@ -68,7 +62,7 @@ export function SystemPromptPanel(): React.ReactNode {
         const { apiUrl, assistantId, apiKey } = getConnection();
         if (!apiUrl) throw new Error("Deployment URL não configurada.");
         const client = new Client({ apiUrl, apiKey });
-        const record = await getAssistant(client, assistantId);
+        const record = await resolveAssistant(client, assistantId);
         const context = (record.context ?? {}) as Record<string, unknown>;
         const remotePrompt = typeof context.system_prompt === "string" ? context.system_prompt : DEFAULT_PROMPT;
         setAssistant(record); setPrompt(remotePrompt); setSavedPrompt(remotePrompt);
@@ -84,8 +78,7 @@ export function SystemPromptPanel(): React.ReactNode {
     try {
       const { apiUrl, apiKey } = getConnection();
       const client = new Client({ apiUrl, apiKey });
-      const currentContext = (assistant.context ?? {}) as Record<string, unknown>;
-      const updated = await client.assistants.update(assistant.assistant_id, { context: { ...currentContext, system_prompt: prompt } });
+      const updated = await saveAssistantContext(client, assistant.assistant_id, { system_prompt: prompt });
       setAssistant(updated); setSavedPrompt(prompt); setSaved(true);
       window.setTimeout(() => setSaved(false), 1800);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao salvar o prompt."); }
