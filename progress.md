@@ -1,5 +1,10 @@
 # Runtime audit fixes
 
+- Published 0.1.6 / 914aeb1: deployment ebf30064-72a2-419f-8742-7ba605da20f1.
+  Dataset and persisted identity controls verified with real backend in Chromium.
+  Twelve published browser cases also pass (mocked API); no JS errors in live inspection.
+  Backend 0.2.5 / 4cc6424 successfully validates partial CPF + name with Qwen.
+
 - Requested follow-up: rename Knowledge tab/title to Dataset (0.1.6), no data migration.
 
 - Identity configuration 0.1.5: native controls in the existing Simulator panel.
