@@ -43,5 +43,8 @@ for (const width of [1440, 1024, 390]) {
     fail = true;
     await page.getByRole("button", { name: "Salvar", exact: true }).click();
     await expect(page.getByText("Falha controlada", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Dataset", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Dataset", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Knowledge", exact: true })).toHaveCount(0);
   });
 }

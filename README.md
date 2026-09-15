@@ -1,5 +1,8 @@
 # Agente Zerai
 
+Frontend 0.1.6 names the knowledge tab and section **Dataset**. Internal paths,
+API operations and stored documents are unchanged.
+
 Frontend 0.1.5 adds Settings > Simulator > Validação de identidade: full/first-four/
 last-four CPF, full name/birth date/both, and attempt limit. The server validates
 and pins this policy to each new conversation; existing conversations keep theirs.

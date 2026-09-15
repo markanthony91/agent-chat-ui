@@ -1,5 +1,7 @@
 # Runtime audit fixes
 
+- Requested follow-up: rename Knowledge tab/title to Dataset (0.1.6), no data migration.
+
 - Identity configuration 0.1.5: native controls in the existing Simulator panel.
 - 12 local Playwright cases passed at 1440/1024/390 widths, including save/reload,
   errors, tool-contract panel and header regressions. API mocked in these cases.
