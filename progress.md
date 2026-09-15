@@ -17,3 +17,11 @@
 - [x] Warning survives reload, without duplicate messages; 10 local Playwright tests pass.
 - [x] Local TypeScript and optimized webpack build pass; lint: zero errors, 24 existing warnings.
 - [ ] Publish this candidate and validate its UI against the deployed backend.
+## Authorized rollout — 2026-09-15
+
+- Configure the existing NEXT_PUBLIC_API_URL / NEXT_PUBLIC_ASSISTANT_ID defaults
+  at build time so a clean browser opens the intended chat without setup.
+- Model selection remains server-side. No credentials or conversation IDs in
+  the shared root link; anonymous operator controls remain a lab limitation.
+- Typecheck passes; lint has zero errors and 24 existing warnings. Publication
+  and clean-browser Qwen smoke are pending verification.

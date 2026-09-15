@@ -269,3 +269,14 @@ const streamValue = useTypedStream({
   },
 });
 ```
+# Direct pilot link
+
+Set `NEXT_PUBLIC_API_URL` to the intended LangGraph runtime and
+`NEXT_PUBLIC_ASSISTANT_ID=agent` **before building**. A clean browser then opens
+the chat directly without connection setup or provider credentials. Share the
+site root, without `threadId`, so the visitor starts a new conversation.
+The backend pins the model with `LLM_MODEL`; this frontend does not choose it.
+Existing explicit runtime query parameters still work for operator diagnostics.
+This does not create a restricted guest account: the existing anonymous lab
+exposes operator controls/history. Share only with authorized testers and use
+synthetic data. Never put an LLM key in a URL or a `NEXT_PUBLIC_` variable.
