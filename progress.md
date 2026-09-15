@@ -36,6 +36,9 @@
 - Typecheck/build pass; targeted lint has no errors and one existing effect warning.
 - Nine browser tests pass: name/header regression plus tool details at three widths,
   keyboard disclosure, legacy backend, error response, no execution operations.
+- Local UI against published backend 0.2.3 verified eleven real descriptions/schemas,
+  zero page errors and only list_tools. First attempt hit a stopped local server;
+  retry after restarting that test server passed. No real LLM calls.
 - Publication pending.
 
 ## Agente Zerai — 0.1.3
