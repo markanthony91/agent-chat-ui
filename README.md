@@ -1,5 +1,12 @@
 # Agente Zerai
 
+Frontend 0.1.9 improves Dataset navigation with document titles, declared type
+badges, type filters/counts and matching excerpts. Search covers the complete
+published document (including YAML metadata), title and path, ignoring case and
+accents. Requires backend 0.2.6 `catalog`; requests debounce by 300 ms, ignore stale
+responses and pin the browsed snapshot. No embeddings, no source edits and no
+invented approval indicators. Published documents remain read-only.
+
 Frontend 0.1.8 resolves the operator-managed default assistant for both chat and
 settings (`metadata.zerai_default=true`). Explicit assistant UUIDs remain exact.
 System Prompt, AGENTS and workflows save to that same persistent assistant, read

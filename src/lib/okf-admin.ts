@@ -5,6 +5,7 @@ type OkfAdminInput = {
   operation:
     | "status"
     | "list"
+    | "catalog"
     | "read"
     | "write"
     | "import_bundle"
@@ -29,6 +30,7 @@ type OkfAdminInput = {
   files?: Record<string, string>;
   path?: string;
   content?: string;
+  query?: string;
   draft_id?: string;
   from_active?: boolean;
   tool_name?: string;
