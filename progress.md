@@ -1,5 +1,20 @@
 # Runtime audit fixes
 
+- Dataset 0.1.7: nested folder navigation and in-panel normalized name/path filter.
+- Browser regression includes nested disclosure, keyboard, preview paths, empty
+  results, accent-insensitive matching, case-sensitive folder identities and errors.
+- Fifteen local browser cases pass at 1440/1024/390 widths. Typecheck/build pass;
+  targeted lint has zero errors and one pre-existing effect warning.
+- Published frontend 0.1.7, source 3323535, successful Railway deployment
+  d44da267-8cdb-4113-a87e-e06567ccbfc6; container version verified directly.
+- Fifteen published Playwright cases pass (mocked API), plus separate real-backend
+  browser validation: 469 files, Aurora filter returns 18, INSTITUTIONS expands
+  banco-aurora-demo/fastpay/usedigi; exact index preview opens, zero JS errors.
+  Sizes 1440/1024/390 verified. Only list/list_drafts/list_versions/read called.
+- No backend, document or snapshot change. Filter searches names/paths, not bodies.
+- Rollback: frontend 0.1.6 deployment ebf30064-72a2-419f-8742-7ba605da20f1;
+  preserve connection environment variables and the backend unchanged.
+
 - Published 0.1.6 / 914aeb1: deployment ebf30064-72a2-419f-8742-7ba605da20f1.
   Dataset and persisted identity controls verified with real backend in Chromium.
   Twelve published browser cases also pass (mocked API); no JS errors in live inspection.
