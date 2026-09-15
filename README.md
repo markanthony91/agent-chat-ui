@@ -285,3 +285,8 @@ Existing explicit runtime query parameters still work for operator diagnostics.
 This does not create a restricted guest account: the existing anonymous lab
 exposes operator controls/history. Share only with authorized testers and use
 synthetic data. Never put an LLM key in a URL or a `NEXT_PUBLIC_` variable.
+# Header settings — 0.1.2
+
+The header gear replaces the GitHub link in both empty and active chats. It opens
+the existing settings panel; there is no second floating trigger. Backend, model,
+credentials and conversation behavior are unchanged.
