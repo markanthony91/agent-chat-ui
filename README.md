@@ -1,5 +1,11 @@
 # Agente Zerai
 
+Frontend 0.1.7: Dataset now has a real nested folder browser. The filter lives
+inside the file panel, matches names/paths ignoring case and accents, opens matching
+branches and shows result counts. Folders open independently, directories sort
+before files, and root documents appear directly. Preview still reads the exact
+published path; no storage migration, content search or new dependency is involved.
+
 Frontend 0.1.6 names the knowledge tab and section **Dataset**. Internal paths,
 API operations and stored documents are unchanged.
 

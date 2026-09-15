@@ -1,5 +1,12 @@
 # Runtime audit fixes
 
+- Dataset 0.1.7: nested folder navigation and in-panel normalized name/path filter.
+- Browser regression includes nested disclosure, keyboard, preview paths, empty
+  results, accent-insensitive matching, case-sensitive folder identities and errors.
+- Fifteen local browser cases pass at 1440/1024/390 widths. Typecheck/build pass;
+  targeted lint has zero errors and one pre-existing effect warning.
+- Railway publication and real Dataset inspection pending. No backend changes.
+
 - Published 0.1.6 / 914aeb1: deployment ebf30064-72a2-419f-8742-7ba605da20f1.
   Dataset and persisted identity controls verified with real backend in Chromium.
   Twelve published browser cases also pass (mocked API); no JS errors in live inspection.
