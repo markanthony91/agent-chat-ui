@@ -20,9 +20,8 @@ is retained. Histories are paginated by 20; none are silently discarded.
 
 Local validation: 135 Python unit tests, 86% overall backend coverage, 90% RAW
 compiler coverage; Ruff, TypeScript, production webpack build and ESLint (0 errors,
-25 existing warnings). 24 browser/unit cases passed against the production build,
-covering desktop/mobile, history, restore, reload and rejected saves; an additional
-Workflow toast check also runs. Development-server HMR/origin issues were avoided
+25 existing warnings). 25 browser/unit cases passed against the production build,
+covering desktop/mobile, history, restore, reload and rejected saves and Workflow save feedback. Development-server HMR/origin issues were avoided
 by testing the production build. Toasts are placed at the top with a close button
 to avoid covering Save controls. Frontend coverage percentage was not measured.
 
@@ -41,3 +40,16 @@ periodic persistence and abrupt-host-failure limitation remain unchanged.
 Backend publication: 7eb7e7ab-4907-4e58-8d5e-ee601e33fd20 SUCCESS, installed
 0.2.7 verified by SSH. All 31 conversation exports, managed Assistant context and
 version, and 4148 Markdown hashes match the pre-deploy backup.
+
+Frontend publication: f1430cd8-8194-4e41-bed6-7b4821fdd111 SUCCESS, source
+b93cbe7, installed 0.2.0 verified by SSH. The published browser check passed in
+20.9 seconds: disposable Assistant versions 1-4, prompt/instruction saves, history
+preview, restoration as a new version, reload, and preservation of other fields.
+The disposable Assistant was deleted after validation. The global RAW editor
+saved identical content, retained v1, created v2, and reloaded the same content.
+The managed Assistant context remained unchanged; no browser JavaScript errors.
+
+PRs: frontend https://github.com/markanthony91/agent-chat-ui/pull/14 and backend
+https://github.com/markanthony91/simple-agent-template/pull/11. Both target the
+previously deployed dataset-content-search branches, retaining the published
+fixes not yet integrated into main. Railway publication used the tested branches.

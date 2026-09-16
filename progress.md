@@ -102,4 +102,5 @@
 - [x] Native Assistant version history, previews and restoration into the editor.
 - [x] Version-confirmed saves and success feedback in all Save-button panels.
 - [x] RAW AGENTS.md atomic persistent history through backend 0.2.7.
-- [ ] Publish and verify live UI/history and preservation of existing data.
+- [x] Published frontend/backend; live save/history/restore/reload passed, existing data preserved.
+- Evidence: `docs/INSTRUCTION_VERSIONS.md`.
