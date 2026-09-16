@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "sonner";
+
 import React, { useEffect, useState } from "react";
 import { RefreshCw, Save } from "lucide-react";
 import { runOkfAdmin } from "@/lib/okf-admin";
@@ -62,6 +64,7 @@ export function SimulatorPanel(): React.ReactNode {
     try {
       const result = await runOkfAdmin({ operation: "save_simulator_fixture", fixture });
       setFixture(result as SimulatorFixture);
+      toast.success("Salvo com sucesso", { description: "Simulador atualizado para novas conversas." });
       setMessage("Fixture salva. Inicie uma nova conversa para utilizar os novos dados.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Falha ao salvar fixture do simulador.");

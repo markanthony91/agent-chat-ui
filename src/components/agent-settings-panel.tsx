@@ -1,5 +1,8 @@
 "use client";
 
+import { toast } from "sonner";
+import { InstructionHistory } from "@/components/instruction-history";
+
 import React, { useEffect, useState } from "react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
@@ -59,6 +62,7 @@ export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: 
       const cfg = connection();
       const client = new Client({ apiUrl: cfg.apiUrl, apiKey: cfg.apiKey });
       const updated = await saveAssistantContext(client, assistant.assistant_id, { system_prompt: prompt });
+      toast.success("Salvo com sucesso", { description: `System Prompt · versão ${updated.version}` });
       setAssistant(updated); setSavedPrompt(prompt);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Falha ao salvar o prompt.");
@@ -82,7 +86,7 @@ export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: 
             {tabButton("simulator", "Simulator")}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {tab === "prompt" && <div className="p-5"><h3 className="font-semibold">System Prompt</h3><p className="mt-1 text-sm text-neutral-500">Identidade e regras superiores do agente.</p>{error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</div>}<textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={loading} spellCheck={false} className="mt-4 min-h-[52vh] w-full resize-y rounded-xl border bg-neutral-50 p-4 font-mono text-sm leading-6 outline-none dark:bg-neutral-900" /><div className="mt-3 flex items-center justify-between"><span className="text-xs text-neutral-500">{prompt === savedPrompt ? "Sincronizado" : "Alterações não salvas"}</span><button onClick={() => void savePrompt()} disabled={loading || prompt === savedPrompt} className="rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950">Salvar</button></div></div>}
+            {tab === "prompt" && <div className="p-5"><h3 className="font-semibold">System Prompt</h3><p className="mt-1 text-sm text-neutral-500">Identidade e regras superiores do agente.</p>{assistant && <InstructionHistory key={`${assistant.assistant_id}:${assistant.version}`} assistantId={assistant.assistant_id} field="system_prompt" version={assistant.version} disabled={loading} onSelect={setPrompt} />}{error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</div>}<textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={loading} spellCheck={false} className="mt-4 min-h-[52vh] w-full resize-y rounded-xl border bg-neutral-50 p-4 font-mono text-sm leading-6 outline-none dark:bg-neutral-900" /><div className="mt-3 flex items-center justify-between"><span className="text-xs text-neutral-500">{prompt === savedPrompt ? "Sincronizado" : "Alterações não salvas"}</span><button onClick={() => void savePrompt()} disabled={loading || !assistant || prompt === savedPrompt} className="rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950">Salvar</button></div></div>}
             {tab === "instructions" && <AgentInstructionsPanel />}
             {tab === "workflows" && <WorkflowsPanel />}
             {tab === "knowledge" && <div><div className="px-5 pt-5"><OkfBundleImporter onImported={() => setKnowledgeRevision((value) => value + 1)} /></div><KnowledgeEditor key={knowledgeRevision} /></div>}

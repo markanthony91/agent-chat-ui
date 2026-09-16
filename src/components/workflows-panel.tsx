@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "sonner";
+
 import React, { useEffect, useMemo, useState } from "react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { CheckCircle2, Plus, Save, Trash2 } from "lucide-react";
@@ -89,6 +91,7 @@ export function WorkflowsPanel(): React.ReactNode {
     try {
       await updateContext(next, activeId);
       setMessage("Workflow salvo.");
+      toast.success("Salvo com sucesso", { description: "Workflow atualizado." });
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao salvar workflow."); }
     finally { setBusy(false); }
   };

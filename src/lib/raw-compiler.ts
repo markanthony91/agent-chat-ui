@@ -2,11 +2,18 @@ import { Client } from "@langchain/langgraph-sdk";
 import { getRuntimeConnection } from "@/lib/runtime-connection";
 
 type RawCompilerInput = {
-  operation: "analyze" | "create_draft" | "get_agents" | "save_agents";
+  operation:
+    | "analyze"
+    | "create_draft"
+    | "get_agents"
+    | "save_agents"
+    | "get_agents_versions";
   source_name?: string;
   raw_text?: string;
   ingestion_id?: string;
   agents_content?: string;
+  limit?: number;
+  offset?: number;
 };
 
 type RawCompilerState = {

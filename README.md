@@ -327,3 +327,20 @@ synthetic data. Never put an LLM key in a URL or a `NEXT_PUBLIC_` variable.
 The header gear replaces the GitHub link in both empty and active chats. It opens
 the existing settings panel; there is no second floating trigger. Backend, model,
 credentials and conversation behavior are unchanged.
+
+## Instruction history and save feedback (0.2.0)
+
+System Prompt and Agent Instructions show the current Assistant version and a
+paginated **Ver histórico** list with timestamp and content preview. Every save
+uses native LangGraph versioning and verifies both the active content and the
+new history entry before showing **Salvo com sucesso**. Versions are Assistant
+snapshots, so edits to other settings can also advance the version number.
+Loading an older field into the editor does not apply it: click Save to create a
+new version while preserving the other current settings.
+
+RAW Compiler > AGENTS.md has equivalent history backed by the runtime volume,
+including the previous content on the first save (requires backend 0.2.7).
+Workflow and Simulator Save buttons also show a success toast. Failed writes
+keep the error and unsaved editor content; they do not report success.
+
+Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).

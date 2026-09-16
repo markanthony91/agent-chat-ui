@@ -1,0 +1,43 @@
+# Instruction versioning - 2026-09-16
+
+Frontend 0.2.0 builds on the deployed 0.1.9 branch, retaining managed assistant,
+dataset search and previous runtime fixes. Backend 0.2.7 builds on deployed 0.2.6.
+
+System Prompt and Agent Instructions reuse native Assistant versions; no history
+is stored in localStorage or copied into the model context. Save reads fresh
+context, patches only edited fields, reads back, and confirms the returned
+version exists in history. Native simultaneous edits remain last-writer-wins;
+a changed version during confirmation is reported as unconfirmed, not success.
+The history displays complete Assistant snapshot version numbers (including
+saves of other settings). Missing overrides are identified as default content;
+repository defaults from the past cannot be reconstructed from those records.
+Restoration copies only the selected field into the editor and needs Save.
+
+RAW history is atomic at /data/okf/raw/agents_versions.json; the first save
+preserves the exact legacy AGENTS.md/default as v1 with its capture timestamp.
+The latest record is the authoritative active RAW instruction. The legacy file
+is retained. Histories are paginated by 20; none are silently discarded.
+
+Local validation: 135 Python unit tests, 86% overall backend coverage, 90% RAW
+compiler coverage; Ruff, TypeScript, production webpack build and ESLint (0 errors,
+25 existing warnings). 24 browser/unit cases passed against the production build,
+covering desktop/mobile, history, restore, reload and rejected saves; an additional
+Workflow toast check also runs. Development-server HMR/origin issues were avoided
+by testing the production build. Toasts are placed at the top with a close button
+to avoid covering Save controls. Frontend coverage percentage was not measured.
+
+Backup before rollout: /data/backups/pre-instruction-versions-20260916T194309Z,
+31 conversation exports, 4 assistants and histories, 4148 Markdown hashes, volume
+archive SHA-256 e196fc794327543a3c4c8d9b94e6c98adcee3824b09f72d4f416bebcdb0c5f2e.
+No prompt content or conversation exports belong in Git.
+
+Rollback: frontend can return to deployment 7ffa2304-1181-4669-83b2-ff6101b0a968.
+Backend can return to d3a3f10a-84b8-465a-a006-2bf3299927c7, but it reads the
+legacy RAW AGENTS.md: export the desired latest RAW history content to that file
+atomically before using the old backend, retaining history and backup.
+Keep the existing managed assistant, /data and one replica. LangGraph dev's
+periodic persistence and abrupt-host-failure limitation remain unchanged.
+
+Backend publication: 7eb7e7ab-4907-4e58-8d5e-ee601e33fd20 SUCCESS, installed
+0.2.7 verified by SSH. All 31 conversation exports, managed Assistant context and
+version, and 4148 Markdown hashes match the pre-deploy backup.
