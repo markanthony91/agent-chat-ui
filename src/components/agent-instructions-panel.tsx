@@ -1,5 +1,8 @@
 "use client";
 
+import { toast } from "sonner";
+import { InstructionHistory } from "@/components/instruction-history";
+
 import React, { useEffect, useState } from "react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { RefreshCw, Save } from "lucide-react";
@@ -74,6 +77,7 @@ export function AgentInstructionsPanel(): React.ReactNode {
       const { apiUrl, apiKey } = getConnection();
       const client = new Client({ apiUrl, apiKey });
       const updated = await saveAssistantContext(client, assistant.assistant_id, { agent_instructions: value });
+      toast.success("Salvo com sucesso", { description: `AGENTS.md · versão ${updated.version}` });
       setAssistant(updated); setSavedValue(value); setSource("override");
       setMessage("Agent Instructions salvas como override deste Assistant.");
     } catch (cause) {
@@ -92,6 +96,7 @@ export function AgentInstructionsPanel(): React.ReactNode {
     </div>
     {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{error}</div>}
     {message && <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">{message}</div>}
+    {assistant && <InstructionHistory key={`${assistant.assistant_id}:${assistant.version}`} assistantId={assistant.assistant_id} field="agent_instructions" version={assistant.version} disabled={loading || saving} onSelect={setValue} />}
     <textarea value={value} onChange={(event) => setValue(event.target.value)} disabled={loading || saving} spellCheck={false} className="mt-4 min-h-[55vh] w-full resize-y rounded-xl border bg-neutral-50 p-4 font-mono text-sm leading-6 outline-none dark:bg-neutral-900" placeholder={loading ? "Carregando..." : "Defina as instruções operacionais do agente..."} />
     <div className="mt-3 flex items-center justify-between"><span className="text-xs text-neutral-500">{value === savedValue ? "Sincronizado" : "Alterações não salvas"}</span><button onClick={() => void save()} disabled={loading || saving || !value.trim() || value === savedValue} className="flex items-center gap-2 rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950"><Save className="h-4 w-4" />{saving ? "Salvando..." : "Salvar override"}</button></div>
   </div>;

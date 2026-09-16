@@ -96,3 +96,11 @@
   confirmed. The same six browser checks pass against the published UI with
   mocked runtime responses (no LLM calls or production configuration writes).
 - PR: https://github.com/markanthony91/agent-chat-ui/pull/7.
+
+## Instruction versions (0.2.0)
+
+- [x] Native Assistant version history, previews and restoration into the editor.
+- [x] Version-confirmed saves and success feedback in all Save-button panels.
+- [x] RAW AGENTS.md atomic persistent history through backend 0.2.7.
+- [x] Published frontend/backend; live save/history/restore/reload passed, existing data preserved.
+- Evidence: `docs/INSTRUCTION_VERSIONS.md`.
