@@ -53,7 +53,15 @@ test("published settings persist while fallback stays off and Qwen tools work", 
     await expect(page.getByLabel("Temperatura", { exact: true })).toBeEnabled();
     await expect(page.getByLabel("Conexão principal")).toHaveValue("default");
     await expect(page.getByLabel("Conexão de fallback")).toHaveValue("");
-    for (const id of ["lovable", "external"])
+    if (process.env.PUBLISHED_LOVABLE_MODEL)
+      await expect(
+        page
+          .getByLabel("Conexão de fallback")
+          .locator('option[value="lovable"]'),
+      ).toBeEnabled();
+    for (const id of process.env.PUBLISHED_LOVABLE_MODEL
+      ? ["external"]
+      : ["lovable", "external"])
       await expect(
         page.getByLabel("Conexão de fallback").locator(`option[value="${id}"]`),
       ).toBeDisabled();
