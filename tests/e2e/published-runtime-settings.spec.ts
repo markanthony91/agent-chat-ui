@@ -164,7 +164,32 @@ test("published settings persist while fallback stays off and Qwen tools work", 
       model,
       fallback_used: false,
     });
-    expect(messages.at(-1)?.content).toContain("Sofia");
+    // Profile guidance is not a deterministic presentation guarantee. Record
+    // spontaneous introduction separately from the explicit identity check.
+    const introducedName = messages.at(-1)?.content?.includes("Sofia") ?? false;
+    await expect(
+      page.getByRole("button", { name: "Cancel", exact: true }),
+    ).toHaveCount(0);
+    await input.fill("Qual é o seu nome configurado?");
+    await input.press("Enter");
+    await expect
+      .poll(
+        async () => {
+          const currentState = await client.threads.getState(thread!);
+          const currentMessages = (
+            currentState.values as {
+              messages: Array<{ type: string; content?: string }>;
+            }
+          ).messages;
+          return (
+            currentMessages.length > messages.length + 1 &&
+            currentMessages.at(-1)?.type === "ai" &&
+            currentMessages.at(-1)?.content?.includes("Sofia")
+          );
+        },
+        { timeout: 90000 },
+      )
+      .toBe(true);
     await expect(
       page.locator(".group.mr-auto .markdown-content").last(),
     ).toBeVisible();
@@ -180,6 +205,8 @@ test("published settings persist while fallback stays off and Qwen tools work", 
         tool: "utc_now",
         fallback_used: false,
         page_errors: errors.length,
+        spontaneous_profile_name: introducedName,
+        explicit_profile_name: true,
       }),
     );
   } finally {
