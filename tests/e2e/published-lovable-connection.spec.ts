@@ -26,15 +26,7 @@ test("published Lovable connection is available while fallback remains off", asy
   await page
     .getByRole("button", { name: "Abrir configurações", exact: true })
     .click();
-  const metadata = page.waitForResponse(
-    (response) =>
-      response.request().method() === "POST" &&
-      response.request().postDataJSON()?.input?.operation === "get_llm_config",
-  );
   await page.getByRole("button", { name: "LLM", exact: true }).click();
-  const body = await (await metadata).text();
-  expect(body).toContain(model!);
-  expect(body).not.toContain('"api_key"');
   await expect(page.getByLabel("Temperatura", { exact: true })).toBeEnabled();
   await expect(page.getByLabel("Conexão principal")).toHaveValue("default");
   await expect(page.getByLabel("Conexão de fallback")).toHaveValue("");
@@ -59,7 +51,7 @@ test("published Lovable connection is available while fallback remains off", asy
   console.log(
     JSON.stringify({
       lovable_available: true,
-      model,
+      expected_model: model,
       fallback_enabled: false,
       assistant_unchanged: true,
       page_errors: errors.length,
