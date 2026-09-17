@@ -344,3 +344,24 @@ Workflow and Simulator Save buttons also show a success toast. Failed writes
 keep the error and unsaved editor content; they do not report success.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
+
+## LLM and agent profile settings (0.3.0)
+
+The settings menu now includes **LLM** and **Perfil do agente** (backend 0.3.0
+required). LLM shows the server-selected model and lets operators set temperature,
+top-p and the output token limit. Blank values use server/provider defaults;
+unknown provider defaults are labelled explicitly instead of displaying a guessed
+number. Model selection and credentials remain server-managed.
+
+The profile contains the agent's presentation name, role and tone. Nonempty
+fields are incorporated into the model instructions; blank fields preserve the
+prompts. The presentation name is separate from the technical Assistant ID.
+Use a new conversation to compare settings without previous messages influencing
+the model. Profile instructions and low temperature do not guarantee adherence.
+
+Both forms validate server-side, preserve other settings, save native Assistant
+versions, read back the result and show **Salvo com sucesso** only after version
+confirmation. Failed saves retain the editor content. Clearing numeric fields
+and saving restores default sampling. No production settings are changed by
+installing this release. Backend and published validation details:
+[release notes](docs/LLM_AGENT_SETTINGS.md).
