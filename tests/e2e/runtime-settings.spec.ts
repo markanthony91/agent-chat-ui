@@ -44,6 +44,38 @@ for (const mobile of [false, true]) {
           result = {
             model: "Qwen/test-model",
             provider: "API compatível com OpenAI",
+            connections: [
+              {
+                id: "default",
+                label: "Servidor principal",
+                endpoint: "https://primary.invalid/v1",
+                model: "Qwen/test-model",
+                configured: true,
+                credential_configured: true,
+                proxy_enabled: false,
+                timeout_seconds: 120,
+              },
+              {
+                id: "lovable",
+                label: "Lovable (Gemini ou GPT)",
+                endpoint: "https://bridge.invalid/v1",
+                model: "google/gemini-2.5-flash",
+                configured: true,
+                credential_configured: true,
+                proxy_enabled: false,
+                timeout_seconds: 120,
+              },
+              {
+                id: "external",
+                label: "Outro endpoint",
+                endpoint: "",
+                model: "",
+                configured: false,
+                credential_configured: false,
+                proxy_enabled: false,
+                timeout_seconds: 120,
+              },
+            ],
             defaults: { temperature: null, top_p: null, max_tokens: null },
           };
         if (input.operation === "validate_runtime_settings") {
@@ -74,6 +106,16 @@ for (const mobile of [false, true]) {
     await open("LLM");
     await expect(page.getByText("Qwen/test-model")).toBeVisible();
     await expect(page.getByText(/Salvo: Padrão do provedor/)).toHaveCount(3);
+    await expect(page.getByLabel("Conexão de fallback")).toHaveValue("");
+    await expect(
+      page
+        .getByLabel("Conexão de fallback")
+        .locator('option[value="external"]'),
+    ).toBeDisabled();
+    await page.getByLabel("Conexão de fallback").selectOption("lovable");
+    await expect(
+      page.getByText("google/gemini-2.5-flash", { exact: true }),
+    ).toBeVisible();
     await page.getByLabel("Temperatura", { exact: true }).fill("3");
     await page.getByRole("button", { name: "Salvar LLM", exact: true }).click();
     expect(validations).toBe(0);
@@ -86,6 +128,10 @@ for (const mobile of [false, true]) {
     await expect(
       page.getByText("Salvo com sucesso", { exact: true }),
     ).toBeVisible();
+    expect(record.context.llm_integration).toEqual({
+      primary: "default",
+      fallback: "lovable",
+    });
     expect(record.context.llm_settings).toEqual({
       temperature: 0,
       top_p: 0.8,
@@ -97,6 +143,7 @@ for (const mobile of [false, true]) {
       "0",
     );
     await expect(page.getByLabel("Top-p", { exact: true })).toHaveValue("0.8");
+    await expect(page.getByLabel("Conexão de fallback")).toHaveValue("lovable");
     await expect(
       page.getByLabel("Limite de tokens da resposta", { exact: true }),
     ).toHaveValue("1024");

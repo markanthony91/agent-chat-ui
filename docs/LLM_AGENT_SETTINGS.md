@@ -4,6 +4,13 @@ Frontend/backend 0.3.0 build on their instruction-versioning branches; main does
 not yet include all deployed fixes. No new dependencies. The settings menu adds
 LLM and Perfil do agente. Existing prompt editors/history remain unchanged.
 
+The LLM tab also exposes sanitized integration metadata and selects primary and
+fallback connections (server, Lovable Gemini/GPT, other OpenAI-compatible).
+Endpoint/model/key registration stays in server variables. Missing connections
+are disabled; the form does not claim they are operational merely because a
+configuration exists. The dedicated Lovable bridge source lives in the backend
+repo and still needs separate deployment/credential configuration and live E2E.
+
 The forms use the existing managed Assistant resolver, admin graph connection,
 versioned save/read-back helper and toast. Settings are scoped to the selected
 Assistant and are sent to the managed graph on subsequent runs. Names apply to
@@ -11,7 +18,8 @@ model presentation, not a rename of the app or technical Assistant identifier.
 
 Validation covers temperature zero, invalid ranges, read-back, version advancement,
 reload, profile fields, preservation of other context, clearing overrides and
-failed saves on desktop/mobile. Backend protocol tests exercise an actual graph
+failed saves on desktop/mobile, including persistence of fallback selection and
+disabled unconfigured connections. Backend protocol tests exercise an actual graph
 tool loop against intercepted HTTP (not live inference). Do not interpret these
 checks as a new adherence benchmark or a guarantee of exact output.
 

@@ -317,7 +317,7 @@ Set `NEXT_PUBLIC_API_URL` to the intended LangGraph runtime and
 `NEXT_PUBLIC_ASSISTANT_ID=agent` **before building**. A clean browser then opens
 the chat directly without connection setup or provider credentials. Share the
 site root, without `threadId`, so the visitor starts a new conversation.
-The backend pins the model with `LLM_MODEL`; this frontend does not choose it.
+The backend pins each connection model; the LLM tab selects only server-configured connections.
 Existing explicit runtime query parameters still work for operator diagnostics.
 This does not create a restricted guest account: the existing anonymous lab
 exposes operator controls/history. Share only with authorized testers and use
@@ -351,7 +351,11 @@ The settings menu now includes **LLM** and **Perfil do agente** (backend 0.3.0
 required). LLM shows the server-selected model and lets operators set temperature,
 top-p and the output token limit. Blank values use server/provider defaults;
 unknown provider defaults are labelled explicitly instead of displaying a guessed
-number. Model selection and credentials remain server-managed.
+number. The same tab selects primary/fallback connections registered on the server
+(default, Lovable Gemini/GPT, or another OpenAI-compatible endpoint). It displays
+the sanitized endpoint, model, read timeout, proxy status and whether credentials
+are configured. Credential values never enter the browser or Assistant history.
+Unconfigured connections are disabled; configured does not mean live-tested.
 
 The profile contains the agent's presentation name, role and tone. Nonempty
 fields are incorporated into the model instructions; blank fields preserve the
@@ -362,6 +366,11 @@ the model. Profile instructions and low temperature do not guarantee adherence.
 Both forms validate server-side, preserve other settings, save native Assistant
 versions, read back the result and show **Salvo com sucesso** only after version
 confirmation. Failed saves retain the editor content. Clearing numeric fields
-and saving restores default sampling. No production settings are changed by
+and saving restores default sampling. Fallback is off until explicitly saved;
+it retries one failed inference only before streaming begins, preserving the
+prompts and tool history. Cancellations, partial output, authorization/billing
+errors and refused/invalid requests do not trigger fallback. The dedicated Lovable
+bridge requires separate deployment and configuration (see backend documentation).
+No production settings are changed by
 installing this release. Backend and published validation details:
 [release notes](docs/LLM_AGENT_SETTINGS.md).

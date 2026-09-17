@@ -8,7 +8,18 @@ import { getRuntimeConnection } from "@/lib/runtime-connection";
 import { runOkfAdmin } from "@/lib/okf-admin";
 
 type Section = "llm_settings" | "agent_profile";
+type ConnectionInfo = {
+  id: string;
+  label: string;
+  endpoint: string;
+  model: string;
+  configured: boolean;
+  credential_configured: boolean;
+  proxy_enabled: boolean;
+  timeout_seconds: number;
+};
 type ModelInfo = {
+  connections: ConnectionInfo[];
   model: string;
   provider: string;
   defaults: Record<string, number | null>;
@@ -88,7 +99,12 @@ export function RuntimeSettingsPanel({ section }: { section: Section }) {
             ? runOkfAdmin({ operation: "get_llm_config" })
             : Promise.resolve(null),
         ]);
-        if (info && (typeof info.model !== "string" || !info.defaults))
+        if (
+          info &&
+          (typeof info.model !== "string" ||
+            !info.defaults ||
+            !Array.isArray(info.connections))
+        )
           throw new Error(
             "O backend ainda não disponibiliza as configurações de LLM.",
           );
@@ -102,6 +118,12 @@ export function RuntimeSettingsPanel({ section }: { section: Section }) {
             configured?.[key] == null ? "" : String(configured[key]),
           ]),
         );
+        if (isLLM) {
+          const integration = (record.context as Record<string, unknown>)
+            ?.llm_integration as Record<string, string> | undefined;
+          loaded.primary = integration?.primary || "default";
+          loaded.fallback = integration?.fallback || "";
+        }
         if (active) {
           setAssistant(record);
           setModel(info as ModelInfo | null);
@@ -132,26 +154,44 @@ export function RuntimeSettingsPanel({ section }: { section: Section }) {
     try {
       const settings = Object.fromEntries(
         Object.entries(values).flatMap(([key, value]) => {
-          if (isLLM && !value.trim()) return [];
+          if (isLLM && (["primary", "fallback"].includes(key) || !value.trim()))
+            return [];
           return [[key, isLLM ? Number(value) : value.trim()]];
         }),
       );
       const validated = await runOkfAdmin({
         operation: "validate_runtime_settings",
-        settings: { [section]: settings },
+        settings: {
+          [section]: settings,
+          ...(isLLM
+            ? {
+                llm_integration: {
+                  primary: values.primary,
+                  fallback: values.fallback || null,
+                },
+              }
+            : {}),
+        },
       });
-      if (!validated[section])
+      if (!validated[section] || (isLLM && !validated.llm_integration))
         throw new Error("O backend não confirmou as configurações.");
       const { apiUrl, apiKey } = getRuntimeConnection();
       const updated = await saveAssistantContext(
         new Client({ apiUrl, apiKey }),
         assistant.assistant_id,
-        { [section]: validated[section] },
+        {
+          [section]: validated[section],
+          ...(isLLM ? { llm_integration: validated.llm_integration } : {}),
+        },
       );
       const normalized = Object.fromEntries(
         Object.keys(values).map((key) => [
           key,
-          settings[key] == null ? "" : String(settings[key]),
+          ["primary", "fallback"].includes(key) && isLLM
+            ? values[key]
+            : settings[key] == null
+              ? ""
+              : String(settings[key]),
         ]),
       );
       setAssistant(updated);
@@ -206,15 +246,86 @@ export function RuntimeSettingsPanel({ section }: { section: Section }) {
         </p>
       )}
       {isLLM && model && (
-        <div className="space-y-1 rounded-lg border p-3 text-sm">
-          <p>
-            Modelo: <span className="font-mono break-all">{model.model}</span>
-          </p>
-          <p>Conexão: {model.provider}</p>
+        <fieldset
+          className="space-y-4 rounded-lg border p-3 text-sm"
+          disabled={busy || !assistant}
+        >
+          <legend className="px-1 font-medium">Integração e fallback</legend>
+          {(["primary", "fallback"] as const).map((key) => (
+            <div key={key}>
+              <label htmlFor={`connection-${key}`}>
+                {key === "primary"
+                  ? "Conexão principal"
+                  : "Conexão de fallback"}
+              </label>
+              <select
+                id={`connection-${key}`}
+                className={inputClass}
+                value={values[key] ?? ""}
+                onChange={(event) =>
+                  setValues({ ...values, [key]: event.target.value })
+                }
+              >
+                {key === "fallback" && <option value="">Desativado</option>}
+                {model.connections.map((connection) => (
+                  <option
+                    key={connection.id}
+                    value={connection.id}
+                    disabled={
+                      !connection.configured ||
+                      (key === "fallback" && connection.id === values.primary)
+                    }
+                  >
+                    {connection.label}
+                    {!connection.configured ? " — pendente no servidor" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+          {model.connections
+            .filter((connection) =>
+              [values.primary, values.fallback].includes(connection.id),
+            )
+            .map((connection) => (
+              <div
+                key={connection.id}
+                className="space-y-1 border-t pt-2"
+              >
+                <p className="font-medium">{connection.label}</p>
+                <p>
+                  Modelo:{" "}
+                  <span className="font-mono break-all">
+                    {connection.model || "Não configurado"}
+                  </span>
+                </p>
+                <p className="break-all">
+                  Endpoint: {connection.endpoint || "Não configurado"}
+                </p>
+                <p>
+                  Credencial:{" "}
+                  {connection.credential_configured
+                    ? "Configurada no servidor"
+                    : "Pendente"}
+                </p>
+                <p>
+                  Timeout de leitura: {connection.timeout_seconds}s · Proxy:{" "}
+                  {connection.proxy_enabled ? "Sim" : "Não"}
+                </p>
+              </div>
+            ))}
           <p className="text-neutral-500">
-            Modelo e credenciais são definidos no servidor.
+            Endpoint, modelo e credenciais são cadastrados no servidor. Lovable
+            aceita Gemini ou GPT conforme o modelo configurado. Uma conexão
+            disponível aqui ainda precisa de teste com o provedor.
           </p>
-        </div>
+          <p className="text-neutral-500">
+            O fallback tenta outra conexão em falhas de rede, timeout, limite de
+            requisições ou erro do servidor, antes de transmitir qualquer parte
+            da resposta. Os mesmos prompts, ferramentas e parâmetros são
+            enviados; o provedor precisa aceitá-los.
+          </p>
+        </fieldset>
       )}
       {isLLM
         ? llmFields.map((field) => (
