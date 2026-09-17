@@ -14,10 +14,11 @@ import { ToolsPanel } from "@/components/tools-panel";
 import { AgentInstructionsPanel } from "@/components/agent-instructions-panel";
 import { WorkflowsPanel } from "@/components/workflows-panel";
 import { SimulatorPanel } from "@/components/simulator-panel";
+import { RuntimeSettingsPanel } from "@/components/runtime-settings-panel";
 
 const DEFAULT_PROMPT = `# System Prompt\n\nVocê é um agente de atendimento especializado em cobrança e negociação.\n\n## Comportamento\n\n- Converse naturalmente, como uma pessoa.\n- Seja claro, objetivo e respeitoso.\n- Não invente políticas, condições, descontos, limites ou exceções.\n- Consulte o conhecimento institucional quando necessário.\n`;
 
-type Tab = "prompt" | "instructions" | "workflows" | "knowledge" | "compiler" | "tools" | "simulator";
+type Tab = "prompt" | "instructions" | "workflows" | "knowledge" | "compiler" | "tools" | "simulator" | "llm" | "profile";
 
 function connection() {
   const params = new URLSearchParams(window.location.search);
@@ -78,6 +79,8 @@ export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: 
         <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
           <div className="flex w-full flex-none gap-2 overflow-x-auto overscroll-x-contain border-b p-3 touch-pan-x sm:w-52 sm:flex-col sm:overflow-x-visible sm:border-r sm:border-b-0 dark:border-neutral-800">
             {tabButton("prompt", "System Prompt")}
+            {tabButton("profile", "Perfil do agente")}
+            {tabButton("llm", "LLM")}
             {tabButton("instructions", "Agent Instructions")}
             {tabButton("workflows", "Workflows")}
             {tabButton("knowledge", "Dataset")}
@@ -88,6 +91,8 @@ export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: 
           <div className="min-h-0 flex-1 overflow-y-auto">
             {tab === "prompt" && <div className="p-5"><h3 className="font-semibold">System Prompt</h3><p className="mt-1 text-sm text-neutral-500">Identidade e regras superiores do agente.</p>{assistant && <InstructionHistory key={`${assistant.assistant_id}:${assistant.version}`} assistantId={assistant.assistant_id} field="system_prompt" version={assistant.version} disabled={loading} onSelect={setPrompt} />}{error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</div>}<textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={loading} spellCheck={false} className="mt-4 min-h-[52vh] w-full resize-y rounded-xl border bg-neutral-50 p-4 font-mono text-sm leading-6 outline-none dark:bg-neutral-900" /><div className="mt-3 flex items-center justify-between"><span className="text-xs text-neutral-500">{prompt === savedPrompt ? "Sincronizado" : "Alterações não salvas"}</span><button onClick={() => void savePrompt()} disabled={loading || !assistant || prompt === savedPrompt} className="rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950">Salvar</button></div></div>}
             {tab === "instructions" && <AgentInstructionsPanel />}
+            {tab === "llm" && <RuntimeSettingsPanel key="llm" section="llm_settings" />}
+            {tab === "profile" && <RuntimeSettingsPanel key="profile" section="agent_profile" />}
             {tab === "workflows" && <WorkflowsPanel />}
             {tab === "knowledge" && <div><div className="px-5 pt-5"><OkfBundleImporter onImported={() => setKnowledgeRevision((value) => value + 1)} /></div><KnowledgeEditor key={knowledgeRevision} /></div>}
             {tab === "compiler" && <RawOkfCompiler />}

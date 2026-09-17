@@ -22,7 +22,10 @@ type OkfAdminInput = {
     | "set_tool_enabled"
     | "reset_tools"
     | "get_simulator_fixture"
-    | "save_simulator_fixture";
+    | "save_simulator_fixture"
+    | "get_llm_config"
+    | "validate_runtime_settings";
+  settings?: Record<string, unknown>;
   approved?: boolean;
   bundle_name?: string;
   bundle_version?: string;
