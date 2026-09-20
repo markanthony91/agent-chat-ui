@@ -118,6 +118,23 @@ for (const raw of [false, true]) {
     await open();
     const editor = page.locator("textarea").first();
     await expect(editor).toHaveValue("Original instructions");
+    if (!raw) {
+      await page.getByLabel("Arquivo Markdown do AGENTS.md").setInputFiles({
+        name: "AGENTS.md",
+        mimeType: "text/markdown",
+        buffer: Buffer.from("# Instructions loaded from file"),
+      });
+      await expect(editor).toHaveValue("# Instructions loaded from file");
+      await expect(
+        page.getByText("Alterações não salvas", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByText("arquivo local carregado (ainda não salvo)", {
+          exact: false,
+        }),
+      ).toBeVisible();
+      expect(versions).toHaveLength(1);
+    }
     await editor.fill("Changed instructions");
     const save = page.getByRole("button", {
       name: raw ? "Salvar AGENTS.md" : "Salvar override",

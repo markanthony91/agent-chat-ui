@@ -342,6 +342,9 @@ The System Prompt header also accepts a local `.md` file. Loading a file replace
 only the editor contents; the operator must review it and click **Salvar** before
 the runtime creates and activates a new Assistant version.
 
+Agent Instructions accepts a local `AGENTS.md` the same way. The file stays as
+an unsaved editor change until the operator clicks **Salvar override**.
+
 RAW Compiler > AGENTS.md has equivalent history backed by the runtime volume,
 including the previous content on the first save (requires backend 0.2.7).
 Workflow and Simulator Save buttons also show a success toast. Failed writes
