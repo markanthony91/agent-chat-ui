@@ -1,9 +1,10 @@
 "use client";
 
 import { toast } from "sonner";
+import { Upload } from "lucide-react";
 import { InstructionHistory } from "@/components/instruction-history";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
 import { resolveAssistant, saveAssistantContext } from "@/lib/assistant-config";
@@ -37,6 +38,7 @@ export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [knowledgeRevision, setKnowledgeRevision] = useState(0);
+  const promptFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open || tab !== "prompt") return;
@@ -70,6 +72,22 @@ export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: 
     } finally { setLoading(false); }
   };
 
+  const loadPromptFile = async (file?: File) => {
+    if (!file) return;
+    setError(null);
+    try {
+      if (!file.name.toLowerCase().endsWith(".md")) throw new Error("Selecione um arquivo .md.");
+      const content = await file.text();
+      if (!content.trim()) throw new Error("O arquivo Markdown está vazio.");
+      setPrompt(content);
+      toast.success("Arquivo carregado no editor", { description: "Revise o conteúdo e clique em Salvar para criar uma nova versão." });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Falha ao carregar o arquivo Markdown.");
+    } finally {
+      if (promptFileRef.current) promptFileRef.current.value = "";
+    }
+  };
+
   const tabButton = (name: Tab, label: string) => <button type="button" onClick={() => setTab(name)} className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-medium sm:w-full sm:whitespace-normal ${tab === name ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-900"}`}>{label}</button>;
 
   return <>
@@ -89,7 +107,7 @@ export function AgentSettingsPanel({ open, onClose }: { open: boolean; onClose: 
             {tabButton("simulator", "Simulator")}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {tab === "prompt" && <div className="p-5"><h3 className="font-semibold">System Prompt</h3><p className="mt-1 text-sm text-neutral-500">Identidade e regras superiores do agente.</p>{assistant && <InstructionHistory key={`${assistant.assistant_id}:${assistant.version}`} assistantId={assistant.assistant_id} field="system_prompt" version={assistant.version} disabled={loading} onSelect={setPrompt} />}{error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</div>}<textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={loading} spellCheck={false} className="mt-4 min-h-[52vh] w-full resize-y rounded-xl border bg-neutral-50 p-4 font-mono text-sm leading-6 outline-none dark:bg-neutral-900" /><div className="mt-3 flex items-center justify-between"><span className="text-xs text-neutral-500">{prompt === savedPrompt ? "Sincronizado" : "Alterações não salvas"}</span><button onClick={() => void savePrompt()} disabled={loading || !assistant || prompt === savedPrompt} className="rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950">Salvar</button></div></div>}
+            {tab === "prompt" && <div className="p-5"><h3 className="font-semibold">System Prompt</h3><p className="mt-1 text-sm text-neutral-500">Identidade e regras superiores do agente.</p>{assistant && <InstructionHistory key={`${assistant.assistant_id}:${assistant.version}`} assistantId={assistant.assistant_id} field="system_prompt" version={assistant.version} disabled={loading} onSelect={setPrompt} action={<><input ref={promptFileRef} type="file" accept=".md,text/markdown" aria-label="Arquivo Markdown do System Prompt" className="hidden" onChange={(event) => void loadPromptFile(event.target.files?.[0])} /><button type="button" onClick={() => promptFileRef.current?.click()} disabled={loading} className="flex items-center gap-2 rounded border px-3 py-1 disabled:opacity-40"><Upload className="h-4 w-4" />Carregar .md</button></>} />}{error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</div>}<textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={loading} spellCheck={false} className="mt-4 min-h-[52vh] w-full resize-y rounded-xl border bg-neutral-50 p-4 font-mono text-sm leading-6 outline-none dark:bg-neutral-900" /><div className="mt-3 flex items-center justify-between"><span className="text-xs text-neutral-500">{prompt === savedPrompt ? "Sincronizado" : "Alterações não salvas"}</span><button onClick={() => void savePrompt()} disabled={loading || !assistant || prompt === savedPrompt} className="rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950">Salvar</button></div></div>}
             {tab === "instructions" && <AgentInstructionsPanel />}
             {tab === "llm" && <RuntimeSettingsPanel key="llm" section="llm_settings" />}
             {tab === "profile" && <RuntimeSettingsPanel key="profile" section="agent_profile" />}

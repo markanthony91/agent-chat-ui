@@ -338,6 +338,10 @@ snapshots, so edits to other settings can also advance the version number.
 Loading an older field into the editor does not apply it: click Save to create a
 new version while preserving the other current settings.
 
+The System Prompt header also accepts a local `.md` file. Loading a file replaces
+only the editor contents; the operator must review it and click **Salvar** before
+the runtime creates and activates a new Assistant version.
+
 RAW Compiler > AGENTS.md has equivalent history backed by the runtime volume,
 including the previous content on the first save (requires backend 0.2.7).
 Workflow and Simulator Save buttons also show a success toast. Failed writes

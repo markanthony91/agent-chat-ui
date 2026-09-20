@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Client } from "@langchain/langgraph-sdk";
 import { getRuntimeConnection } from "@/lib/runtime-connection";
 import { runRawCompiler } from "@/lib/raw-compiler";
@@ -12,6 +12,7 @@ type Props = {
   version?: number;
   disabled: boolean;
   onSelect: (content: string) => void;
+  action?: ReactNode;
 };
 
 export function InstructionHistory({
@@ -20,6 +21,7 @@ export function InstructionHistory({
   version,
   disabled,
   onSelect,
+  action,
 }: Props) {
   const [versions, setVersions] = useState<Revision[]>([]);
   const [selected, setSelected] = useState<Revision | null>(null);
@@ -80,14 +82,17 @@ export function InstructionHistory({
         <span>
           {version ? `Versão atual: ${version}` : "Histórico de versões"}
         </span>
-        <button
-          type="button"
-          disabled={busy || disabled}
-          onClick={() => (open ? setOpen(false) : void load())}
-          className="rounded border px-3 py-1 disabled:opacity-40"
-        >
-          {open ? "Ocultar histórico" : "Ver histórico"}
-        </button>
+        <div className="flex items-center gap-2">
+          {action}
+          <button
+            type="button"
+            disabled={busy || disabled}
+            onClick={() => (open ? setOpen(false) : void load())}
+            className="rounded border px-3 py-1 disabled:opacity-40"
+          >
+            {open ? "Ocultar histórico" : "Ver histórico"}
+          </button>
+        </div>
       </div>
       {open && (
         <div className="mt-3 space-y-3">

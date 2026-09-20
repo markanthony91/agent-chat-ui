@@ -168,6 +168,17 @@ for (const reference of ["agent", id]) {
       );
     };
     await open();
+    await page.getByLabel("Arquivo Markdown do System Prompt").setInputFiles({
+      name: "system-prompt.md",
+      mimeType: "text/markdown",
+      buffer: Buffer.from("# Prompt carregado\n\nConteúdo do arquivo."),
+    });
+    await expect(page.locator("textarea").first()).toHaveValue(
+      "# Prompt carregado\n\nConteúdo do arquivo.",
+    );
+    await expect(
+      page.getByText("Alterações não salvas", { exact: true }),
+    ).toBeVisible();
     await page.locator("textarea").first().fill("Synthetic edited prompt");
     await page.getByRole("button", { name: "Salvar", exact: true }).click();
     await expect(page.getByText("Sincronizado", { exact: true })).toBeVisible();
