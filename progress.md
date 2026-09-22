@@ -1,5 +1,8 @@
 # Runtime audit fixes
 
+- Workflow editor 0.5.2: full-screen editing and in-content search with previous
+  and next occurrence navigation.
+
 - Dataset 0.1.7: nested folder navigation and in-panel normalized name/path filter.
 - Browser regression includes nested disclosure, keyboard, preview paths, empty
   results, accent-insensitive matching, case-sensitive folder identities and errors.

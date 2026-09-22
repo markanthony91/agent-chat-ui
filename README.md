@@ -349,6 +349,8 @@ RAW Compiler > AGENTS.md has equivalent history backed by the runtime volume,
 including the previous content on the first save (requires backend 0.2.7).
 Workflow and Simulator Save buttons also show a success toast. Failed writes
 keep the error and unsaved editor content; they do not report success.
+The Workflow editor includes in-content search with occurrence navigation and a
+full-screen mode that can also be closed with `Esc`.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
 

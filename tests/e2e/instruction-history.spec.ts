@@ -225,6 +225,25 @@ test("Workflow Save confirms success and preserves instructions", async ({
   await expect(page.locator("textarea").first()).toHaveValue(
     "Original workflow",
   );
+  await page.getByLabel("Buscar no workflow").fill("workflow");
+  await expect(page.getByText("1 resultado", { exact: true })).toBeVisible();
+  await page.getByLabel("Próxima ocorrência").click();
+  await expect(page.getByText("1 de 1", { exact: true })).toBeVisible();
+  await expect
+    .poll(() =>
+      page
+        .locator("textarea")
+        .first()
+        .evaluate((editor) => {
+          const input = editor as HTMLTextAreaElement;
+          return input.value.slice(input.selectionStart, input.selectionEnd);
+        }),
+    )
+    .toBe("workflow");
+  await page.getByLabel("Ver workflow em tela cheia").click();
+  await expect(page.getByLabel("Sair da tela cheia")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByLabel("Ver workflow em tela cheia")).toBeVisible();
   await page.locator("textarea").first().fill("New workflow");
   await page.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(
