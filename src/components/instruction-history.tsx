@@ -8,7 +8,8 @@ import { runRawCompiler } from "@/lib/raw-compiler";
 type Revision = { version: number; created_at: string; content?: string };
 type Props = {
   assistantId?: string;
-  field?: "system_prompt" | "agent_instructions";
+  field?: "system_prompt" | "agent_instructions" | "workflows";
+  workflowId?: string;
   version?: number;
   disabled: boolean;
   onSelect: (content: string) => void;
@@ -18,6 +19,7 @@ type Props = {
 export function InstructionHistory({
   assistantId,
   field,
+  workflowId,
   version,
   disabled,
   onSelect,
@@ -43,9 +45,13 @@ export function InstructionHistory({
           offset,
         });
         records = history.map((item) => {
-          const content = (
-            item.context as Record<string, unknown> | undefined
-          )?.[field];
+          const value = (item.context as Record<string, unknown> | undefined)?.[
+            field
+          ];
+          const content =
+            field === "workflows" && workflowId
+              ? (value as Record<string, unknown> | undefined)?.[workflowId]
+              : value;
           return {
             version: item.version,
             created_at: item.created_at,
@@ -146,8 +152,9 @@ export function InstructionHistory({
             <div className="space-y-2">
               {selected.content === undefined ? (
                 <p>
-                  Esta versão utiliza as instruções padrão, sem conteúdo
-                  personalizado salvo.
+                  {field === "workflows"
+                    ? "Esta versão não contém este workflow."
+                    : "Esta versão utiliza as instruções padrão, sem conteúdo personalizado salvo."}
                 </p>
               ) : (
                 <>

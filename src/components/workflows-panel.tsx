@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import React, { useEffect, useMemo, useState } from "react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { CheckCircle2, Plus, Save, Trash2 } from "lucide-react";
+import { InstructionHistory } from "@/components/instruction-history";
 import { getApiKey } from "@/lib/api-key";
 import { resolveAssistant, saveAssistantContext } from "@/lib/assistant-config";
 
@@ -58,7 +59,7 @@ export function WorkflowsPanel(): React.ReactNode {
   useEffect(() => { void load(); }, []);
 
   const updateContext = async (nextWorkflows: WorkflowMap, nextActiveId: string | null) => {
-    if (!assistant) return;
+    if (!assistant) return null;
     const { apiUrl, apiKey } = getConnection();
     const client = new Client({ apiUrl, apiKey });
     const activeWorkflow = nextActiveId ? nextWorkflows[nextActiveId] ?? "" : "";
@@ -68,6 +69,7 @@ export function WorkflowsPanel(): React.ReactNode {
       active_workflow: activeWorkflow,
     });
     setAssistant(updated); setWorkflows(nextWorkflows); setActiveId(nextActiveId);
+    return updated;
   };
 
   const create = async () => {
@@ -78,8 +80,8 @@ export function WorkflowsPanel(): React.ReactNode {
     const next = { ...workflows, [id]: template };
     setBusy(true); setError(null); setMessage(null);
     try {
-      await updateContext(next, activeId);
-      setSelectedId(id); setDraft(template); setNewName(""); setMessage("Workflow criado.");
+      const updated = await updateContext(next, activeId);
+      setSelectedId(id); setDraft(template); setNewName(""); setMessage(`Workflow criado · versão ${updated?.version}.`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao criar workflow."); }
     finally { setBusy(false); }
   };
@@ -89,9 +91,9 @@ export function WorkflowsPanel(): React.ReactNode {
     const next = { ...workflows, [selectedId]: draft };
     setBusy(true); setError(null); setMessage(null);
     try {
-      await updateContext(next, activeId);
-      setMessage("Workflow salvo.");
-      toast.success("Salvo com sucesso", { description: "Workflow atualizado." });
+      const updated = await updateContext(next, activeId);
+      setMessage(`Workflow salvo · versão ${updated?.version}.`);
+      toast.success("Salvo com sucesso", { description: `Workflow · versão ${updated?.version}` });
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao salvar workflow."); }
     finally { setBusy(false); }
   };
@@ -99,8 +101,8 @@ export function WorkflowsPanel(): React.ReactNode {
   const activate = async (id: string | null) => {
     setBusy(true); setError(null); setMessage(null);
     try {
-      await updateContext(workflows, id);
-      setMessage(id ? `Workflow ${id} ativado.` : "Workflow ativo removido.");
+      const updated = await updateContext(workflows, id);
+      setMessage(`${id ? `Workflow ${id} ativado` : "Workflow ativo removido"} · versão ${updated?.version}.`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao ativar workflow."); }
     finally { setBusy(false); }
   };
@@ -112,9 +114,9 @@ export function WorkflowsPanel(): React.ReactNode {
     const nextActive = activeId === selectedId ? null : activeId;
     setBusy(true); setError(null); setMessage(null);
     try {
-      await updateContext(next, nextActive);
+      const updated = await updateContext(next, nextActive);
       const first = Object.keys(next)[0] ?? null;
-      setSelectedId(first); setDraft(first ? next[first] ?? "" : ""); setMessage("Workflow removido.");
+      setSelectedId(first); setDraft(first ? next[first] ?? "" : ""); setMessage(`Workflow removido · versão ${updated?.version}.`);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao remover workflow."); }
     finally { setBusy(false); }
   };
@@ -126,7 +128,7 @@ export function WorkflowsPanel(): React.ReactNode {
     <div className="mt-4 flex flex-wrap gap-2"><input value={newName} onChange={(event) => setNewName(event.target.value)} placeholder="Nome do novo workflow" className="min-w-[220px] flex-1 rounded-lg border bg-transparent px-3 py-2 text-sm outline-none" /><button onClick={() => void create()} disabled={busy || !newName.trim()} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm disabled:opacity-40"><Plus className="h-4 w-4" />Novo</button></div>
     <div className="mt-5 grid gap-4 md:grid-cols-[240px_1fr]">
       <div className="rounded-xl border p-2">{ids.map((id) => <button key={id} onClick={() => { setSelectedId(id); setDraft(workflows[id] ?? ""); setMessage(null); }} className={`mb-1 flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm ${selectedId === id ? "bg-neutral-100 dark:bg-neutral-800" : "hover:bg-neutral-50 dark:hover:bg-neutral-900"}`}><span className="truncate">{id}</span>{activeId === id && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}</button>)}{ids.length === 0 && <p className="p-3 text-sm text-neutral-500">Nenhum workflow criado.</p>}</div>
-      <div className="rounded-xl border">{selectedId ? <><div className="flex flex-wrap items-center justify-between gap-2 border-b p-3"><div><p className="font-mono text-sm font-semibold">{selectedId}</p><p className="text-xs text-neutral-500">{activeId === selectedId ? "Ativo no runtime" : "Inativo"}</p></div><div className="flex gap-2">{activeId === selectedId ? <button onClick={() => void activate(null)} disabled={busy} className="rounded-lg border px-3 py-1.5 text-sm">Desativar</button> : <button onClick={() => void activate(selectedId)} disabled={busy} className="rounded-lg border px-3 py-1.5 text-sm">Ativar</button>}<button onClick={() => void remove()} disabled={busy} className="rounded-lg border px-3 py-1.5 text-sm"><Trash2 className="h-4 w-4" /></button></div></div><textarea value={draft} onChange={(event) => setDraft(event.target.value)} spellCheck={false} className="min-h-[48vh] w-full resize-y bg-transparent p-4 font-mono text-sm leading-6 outline-none" /><div className="flex justify-end border-t p-3"><button onClick={() => void save()} disabled={busy || !draft.trim() || draft === selectedSaved} className="flex items-center gap-2 rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950"><Save className="h-4 w-4" />Salvar</button></div></> : <p className="p-5 text-sm text-neutral-500">Crie ou selecione um workflow.</p>}</div>
+      <div className="rounded-xl border">{selectedId ? <><div className="flex flex-wrap items-center justify-between gap-2 border-b p-3"><div><p className="font-mono text-sm font-semibold">{selectedId}</p><p className="text-xs text-neutral-500">{activeId === selectedId ? "Ativo no runtime" : "Inativo"}</p></div><div className="flex gap-2">{activeId === selectedId ? <button onClick={() => void activate(null)} disabled={busy} className="rounded-lg border px-3 py-1.5 text-sm">Desativar</button> : <button onClick={() => void activate(selectedId)} disabled={busy} className="rounded-lg border px-3 py-1.5 text-sm">Ativar</button>}<button onClick={() => void remove()} disabled={busy} className="rounded-lg border px-3 py-1.5 text-sm"><Trash2 className="h-4 w-4" /></button></div></div>{assistant && <div className="px-3"><InstructionHistory key={`${assistant.assistant_id}:${assistant.version}:${selectedId}`} assistantId={assistant.assistant_id} field="workflows" workflowId={selectedId} version={assistant.version} disabled={busy} onSelect={setDraft} /></div>}<textarea value={draft} onChange={(event) => setDraft(event.target.value)} spellCheck={false} className="min-h-[48vh] w-full resize-y bg-transparent p-4 font-mono text-sm leading-6 outline-none" /><div className="flex justify-end border-t p-3"><button onClick={() => void save()} disabled={busy || !draft.trim() || draft === selectedSaved} className="flex items-center gap-2 rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950"><Save className="h-4 w-4" />Salvar</button></div></> : <p className="p-5 text-sm text-neutral-500">Crie ou selecione um workflow.</p>}</div>
     </div>
   </div>;
 }

@@ -53,3 +53,16 @@ PRs: frontend https://github.com/markanthony91/agent-chat-ui/pull/14 and backend
 https://github.com/markanthony91/simple-agent-template/pull/11. Both target the
 previously deployed dataset-content-search branches, retaining the published
 fixes not yet integrated into main. Railway publication used the tested branches.
+
+## Workflow history - 2026-09-22
+
+Frontend 0.5.1 extends the same native Assistant history to each saved Workflow.
+The selected Workflow shows the current Assistant version, historical content
+and restoration into the editor. Restoration remains explicit: loading history
+does not change the runtime until the operator clicks Save, which creates and
+confirms a new Assistant version while preserving other context fields. Create,
+activate, deactivate and remove operations also report their confirmed version.
+
+The workflow content itself remains in Assistant storage and is not committed to
+Git. The rollout uses the existing managed Assistant and requires read-back of
+`workflows`, `active_workflow_id` and `active_workflow` before success is reported.

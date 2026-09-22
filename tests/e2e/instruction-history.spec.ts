@@ -194,18 +194,22 @@ test("Workflow Save confirms success and preserves instructions", async ({
       active_workflow: "Original workflow",
     },
   };
+  const versions = [structuredClone(record)];
   await page.route("https://runtime.invalid/**", async (route) => {
     const req = route.request();
     const path = new URL(req.url()).pathname;
     if (path === "/assistants/search") return route.fulfill({ json: [record] });
-    if (path.endsWith("/versions")) return route.fulfill({ json: [record] });
+    if (path.endsWith("/versions"))
+      return route.fulfill({ json: versions.slice().reverse() });
     if (path === `/assistants/${id}`) {
-      if (req.method() === "PATCH")
+      if (req.method() === "PATCH") {
         record = {
           ...record,
           version: record.version + 1,
           context: req.postDataJSON().context,
         };
+        versions.push(structuredClone(record));
+      }
       return route.fulfill({ json: record });
     }
     return route.fulfill({ json: [] });
@@ -226,6 +230,26 @@ test("Workflow Save confirms success and preserves instructions", async ({
   await expect(
     page.getByText("Salvo com sucesso", { exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByText("Versão atual: 2", { exact: true }),
+  ).toBeVisible();
   expect(record.context.system_prompt).toBe("Keep prompt");
   expect(record.context.active_workflow).toBe("New workflow");
+  await page.getByRole("button", { name: "Ver histórico" }).click();
+  await page.getByRole("button", { name: /^v1 ·/ }).click();
+  await expect(page.getByLabel("Conteúdo da versão")).toHaveText(
+    "Original workflow",
+  );
+  await page.getByRole("button", { name: "Carregar v1 no editor" }).click();
+  await expect(page.locator("textarea").first()).toHaveValue(
+    "Original workflow",
+  );
+  expect(record.context.active_workflow).toBe("New workflow");
+  await page.getByRole("button", { name: "Salvar", exact: true }).click();
+  await expect(
+    page.getByText("Versão atual: 3", { exact: true }),
+  ).toBeVisible();
+  expect(record.context.system_prompt).toBe("Keep prompt");
+  expect(record.context.active_workflow).toBe("Original workflow");
+  expect(versions).toHaveLength(3);
 });
