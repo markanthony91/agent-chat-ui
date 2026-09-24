@@ -233,6 +233,11 @@ test("Workflow Save confirms success and preserves instructions", async ({
   ).toHaveCount(1);
   await page.getByLabel("Buscar no workflow").press("Enter");
   await expect(page.getByText("1 de 1", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Buscar no workflow")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("textarea").first()).toHaveValue(
+    "Original workflow",
+  );
   await expect
     .poll(() =>
       page
@@ -295,7 +300,11 @@ test("Workflow Save confirms success and preserves instructions", async ({
   ).toHaveCount(2);
   await page.getByLabel("Buscar no workflow").press("Enter");
   await expect(page.getByText("1 de 2", { exact: true })).toBeVisible();
-  await page.getByLabel("Buscar no workflow").press("Enter");
+  await expect(page.getByLabel("Buscar no workflow")).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(page.getByText("2 de 2", { exact: true })).toBeVisible();
+  await expect(page.locator("textarea").first()).toHaveValue(
+    "# Fluxo\n\nVersão: 6\n\nworkflow e workflow",
+  );
   expect(versions).toHaveLength(4);
 });

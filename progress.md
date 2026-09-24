@@ -1,5 +1,8 @@
 # Runtime audit fixes
 
+- Workflow editor 0.5.4: Enter keeps focus in the workflow search and advances
+  through matches without changing the document.
+
 - Workflow editor 0.5.3: persistent Markdown upload named from the file,
   per-document version badges, yellow match highlighting and Enter navigation.
 

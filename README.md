@@ -354,6 +354,8 @@ full-screen mode that can also be closed with `Esc`. Markdown upload persists a
 workflow under the exact filename, version badges use the document's declared
 `Versão:` value (falling back to `vN` in the filename), and every search match is
 highlighted while `Enter` advances to the next occurrence.
+Focus remains in the search field, so repeated `Enter` presses never edit the
+workflow text.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
 
