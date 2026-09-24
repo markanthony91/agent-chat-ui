@@ -51,6 +51,8 @@ See [Runtime integration and validation](docs/RUNTIME_AUDIT.md) for the shared
 backend connection, per-conversation synthetic identity, decimal-safe simulator,
 offer confirmation, streaming and cancellation behavior. Companion backend:
 `simple-agent-template` 0.2.0. Existing WhatsApp and Lovable apps are unchanged.
+The Simulator exposes the existing dummy `phone` field beside CPF for new
+Playground conversations; it does not configure WhatsApp.
 
 Checks: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test:e2e`.
 Browser tests require the local synthetic backend described in that report.

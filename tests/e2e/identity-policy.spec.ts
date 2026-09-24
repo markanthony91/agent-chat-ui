@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 for (const width of [1440, 1024, 390]) {
   test(`identity policy saves and reloads at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    let fixture = { full_name: "João da Silva", cpf: "12345678900",
+    let fixture = { full_name: "João da Silva", cpf: "12345678900", phone: "+5511949994528",
       identity_policy: { cpf_mode: "full", secondary: "either", max_attempts: 3 } };
     let fail = false;
     await page.route("https://runtime.invalid/**", async (route) => {
@@ -25,11 +25,13 @@ for (const width of [1440, 1024, 390]) {
     await page.goto(url.toString());
     await page.getByRole("button", { name: "Abrir configurações", exact: true }).click();
     await page.getByRole("button", { name: "Simulator", exact: true }).click();
+    await expect(page.getByLabel("Telefone dummy")).toHaveValue("+5511949994528");
     await page.getByLabel("Conferência do CPF").selectOption("first4");
     await page.getByLabel("Fator adicional").selectOption("both");
     await page.getByLabel("Máximo de tentativas").fill("4");
     await page.getByRole("button", { name: "Salvar", exact: true }).click();
     await expect(page.getByText(/Fixture salva/)).toBeVisible();
+    expect(fixture.phone).toBe("+5511949994528");
     expect(fixture.identity_policy).toEqual({ cpf_mode: "first4", secondary: "both", max_attempts: 4 });
     await page.getByRole("button", { name: "Recarregar", exact: true }).click();
     await expect(page.getByLabel("Conferência do CPF")).toHaveValue("first4");

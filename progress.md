@@ -1,5 +1,9 @@
 # Runtime audit fixes
 
+- Playground Simulator 0.6.3: dummy phone field exposed beside CPF for new
+  Playground conversations only; deployment `f47883ad-18b5-49f3-8608-1f3669d07fcd`
+  published and verified in the live UI.
+
 - Workflow editor 0.6.2: each Workflow file now has an independent persisted
   revision counter used by its sidebar badge, save feedback and filtered history.
 
