@@ -1,5 +1,8 @@
 # Runtime audit fixes
 
+- Workflow editor 0.5.5: Enter scrolls the editor to keep the active search
+  occurrence visible without moving focus away from the search field.
+
 - Workflow editor 0.5.4: Enter keeps focus in the workflow search and advances
   through matches without changing the document.
 

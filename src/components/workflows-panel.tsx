@@ -69,7 +69,6 @@ export function WorkflowsPanel(): React.ReactNode {
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const highlightRef = useRef<HTMLPreElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
 
   const selectedSaved = selectedId ? (workflows[selectedId] ?? "") : "";
   const ids = useMemo(() => Object.keys(workflows).sort(), [workflows]);
@@ -129,14 +128,18 @@ export function WorkflowsPanel(): React.ReactNode {
     requestAnimationFrame(() => {
       const editor = editorRef.current;
       if (!editor) return;
-      editor.focus();
       editor.setSelectionRange(start, start + query.trim().length);
-      searchRef.current?.focus({ preventScroll: true });
-      requestAnimationFrame(() => {
-        if (!highlightRef.current) return;
-        highlightRef.current.scrollTop = editor.scrollTop;
-        highlightRef.current.scrollLeft = editor.scrollLeft;
-      });
+      const highlight = highlightRef.current;
+      if (!highlight) return;
+      const active = highlight.querySelectorAll<HTMLElement>("mark")[index];
+      if (active) {
+        editor.scrollTop = Math.max(
+          0,
+          active.offsetTop - editor.clientHeight / 2 + active.offsetHeight / 2,
+        );
+      }
+      highlight.scrollTop = editor.scrollTop;
+      highlight.scrollLeft = editor.scrollLeft;
     });
   };
 
@@ -483,7 +486,6 @@ export function WorkflowsPanel(): React.ReactNode {
               <div className="mx-3 mt-3 flex items-center gap-2 rounded-lg border px-3 py-2">
                 <Search className="h-4 w-4 shrink-0 text-neutral-500" />
                 <input
-                  ref={searchRef}
                   value={query}
                   onChange={(event) => {
                     setQuery(event.target.value);

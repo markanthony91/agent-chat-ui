@@ -355,7 +355,7 @@ workflow under the exact filename, version badges use the document's declared
 `Versão:` value (falling back to `vN` in the filename), and every search match is
 highlighted while `Enter` advances to the next occurrence.
 Focus remains in the search field, so repeated `Enter` presses never edit the
-workflow text.
+workflow text. The editor scrolls to keep the active occurrence visible.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
 

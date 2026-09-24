@@ -279,10 +279,14 @@ test("Workflow Save confirms success and preserves instructions", async ({
   ).toBeVisible();
   expect(record.context.system_prompt).toBe("Keep prompt");
   expect(record.context.active_workflow).toBe("Original workflow");
+  const distantWorkflow = `# Fluxo\n\nVersão: 6\n\nworkflow\n${Array.from(
+    { length: 80 },
+    (_, index) => `linha ${index + 1}`,
+  ).join("\n")}\nworkflow`;
   await page.getByLabel("Arquivo Markdown do workflow").setInputFiles({
     name: "flow_consolidado_v6_logico.md",
     mimeType: "text/markdown",
-    buffer: Buffer.from("# Fluxo\n\nVersão: 6\n\nworkflow e workflow"),
+    buffer: Buffer.from(distantWorkflow),
   });
   await expect(
     page.getByText("flow_consolidado_v6_logico.md", { exact: true }).first(),
@@ -292,7 +296,7 @@ test("Workflow Save confirms success and preserves instructions", async ({
     (record.context.workflows as Record<string, string>)[
       "flow_consolidado_v6_logico.md"
     ],
-  ).toBe("# Fluxo\n\nVersão: 6\n\nworkflow e workflow");
+  ).toBe(distantWorkflow);
   expect(record.context.active_workflow).toBe("Original workflow");
   await page.getByLabel("Buscar no workflow").fill("workflow");
   await expect(
@@ -301,10 +305,20 @@ test("Workflow Save confirms success and preserves instructions", async ({
   await page.getByLabel("Buscar no workflow").press("Enter");
   await expect(page.getByText("1 de 2", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Buscar no workflow")).toBeFocused();
+  const firstMatchScrollTop = await page
+    .locator("textarea")
+    .first()
+    .evaluate((editor) => editor.scrollTop);
   await page.keyboard.press("Enter");
   await expect(page.getByText("2 de 2", { exact: true })).toBeVisible();
-  await expect(page.locator("textarea").first()).toHaveValue(
-    "# Fluxo\n\nVersão: 6\n\nworkflow e workflow",
-  );
+  await expect
+    .poll(() =>
+      page
+        .locator("textarea")
+        .first()
+        .evaluate((editor) => editor.scrollTop),
+    )
+    .toBeGreaterThan(firstMatchScrollTop);
+  await expect(page.locator("textarea").first()).toHaveValue(distantWorkflow);
   expect(versions).toHaveLength(4);
 });
