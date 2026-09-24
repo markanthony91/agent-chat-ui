@@ -350,7 +350,10 @@ including the previous content on the first save (requires backend 0.2.7).
 Workflow and Simulator Save buttons also show a success toast. Failed writes
 keep the error and unsaved editor content; they do not report success.
 The Workflow editor includes in-content search with occurrence navigation and a
-full-screen mode that can also be closed with `Esc`.
+full-screen mode that can also be closed with `Esc`. Markdown upload persists a
+workflow under the exact filename, version badges use the document's declared
+`Versão:` value (falling back to `vN` in the filename), and every search match is
+highlighted while `Enter` advances to the next occurrence.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
 

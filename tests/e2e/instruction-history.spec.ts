@@ -225,9 +225,13 @@ test("Workflow Save confirms success and preserves instructions", async ({
   await expect(page.locator("textarea").first()).toHaveValue(
     "Original workflow",
   );
+  await expect(page.getByText("V1", { exact: true })).toBeVisible();
   await page.getByLabel("Buscar no workflow").fill("workflow");
   await expect(page.getByText("1 resultado", { exact: true })).toBeVisible();
-  await page.getByLabel("Próxima ocorrência").click();
+  await expect(
+    page.getByTestId("workflow-highlight-layer").locator("mark"),
+  ).toHaveCount(1);
+  await page.getByLabel("Buscar no workflow").press("Enter");
   await expect(page.getByText("1 de 1", { exact: true })).toBeVisible();
   await expect
     .poll(() =>
@@ -270,5 +274,28 @@ test("Workflow Save confirms success and preserves instructions", async ({
   ).toBeVisible();
   expect(record.context.system_prompt).toBe("Keep prompt");
   expect(record.context.active_workflow).toBe("Original workflow");
-  expect(versions).toHaveLength(3);
+  await page.getByLabel("Arquivo Markdown do workflow").setInputFiles({
+    name: "flow_consolidado_v6_logico.md",
+    mimeType: "text/markdown",
+    buffer: Buffer.from("# Fluxo\n\nVersão: 6\n\nworkflow e workflow"),
+  });
+  await expect(
+    page.getByText("flow_consolidado_v6_logico.md", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.getByText("V6", { exact: true })).toBeVisible();
+  expect(
+    (record.context.workflows as Record<string, string>)[
+      "flow_consolidado_v6_logico.md"
+    ],
+  ).toBe("# Fluxo\n\nVersão: 6\n\nworkflow e workflow");
+  expect(record.context.active_workflow).toBe("Original workflow");
+  await page.getByLabel("Buscar no workflow").fill("workflow");
+  await expect(
+    page.getByTestId("workflow-highlight-layer").locator("mark"),
+  ).toHaveCount(2);
+  await page.getByLabel("Buscar no workflow").press("Enter");
+  await expect(page.getByText("1 de 2", { exact: true })).toBeVisible();
+  await page.getByLabel("Buscar no workflow").press("Enter");
+  await expect(page.getByText("2 de 2", { exact: true })).toBeVisible();
+  expect(versions).toHaveLength(4);
 });

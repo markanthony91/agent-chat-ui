@@ -14,6 +14,7 @@ import {
   Save,
   Search,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { InstructionHistory } from "@/components/instruction-history";
 import { getApiKey } from "@/lib/api-key";
@@ -44,6 +45,14 @@ function slug(value: string): string {
   );
 }
 
+function workflowVersion(id: string, content: string): string {
+  const declared = content.match(
+    /\bvers(?:ã|a)o\s*:\s*v?(\d+(?:\.\d+)*)/i,
+  )?.[1];
+  const filename = id.match(/(?:^|[_.-])v(\d+(?:\.\d+)*)(?=[_.-]|$)/i)?.[1];
+  return `V${declared ?? filename ?? "1"}`;
+}
+
 export function WorkflowsPanel(): React.ReactNode {
   const [assistant, setAssistant] = useState<Assistant | null>(null);
   const [workflows, setWorkflows] = useState<WorkflowMap>({});
@@ -58,6 +67,8 @@ export function WorkflowsPanel(): React.ReactNode {
   const [query, setQuery] = useState("");
   const [matchIndex, setMatchIndex] = useState(-1);
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const highlightRef = useRef<HTMLPreElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const selectedSaved = selectedId ? (workflows[selectedId] ?? "") : "";
   const ids = useMemo(() => Object.keys(workflows).sort(), [workflows]);
@@ -74,6 +85,31 @@ export function WorkflowsPanel(): React.ReactNode {
       found.push(position);
     return found;
   }, [draft, query]);
+  const highlightedDraft = useMemo(() => {
+    if (!matches.length) return draft;
+    const length = query.trim().length;
+    const parts: React.ReactNode[] = [];
+    let cursor = 0;
+    matches.forEach((start, index) => {
+      parts.push(draft.slice(cursor, start));
+      parts.push(
+        <mark
+          key={`${start}-${index}`}
+          data-active={index === matchIndex || undefined}
+          className={
+            index === matchIndex
+              ? "rounded-sm bg-amber-400 text-inherit"
+              : "rounded-sm bg-yellow-200 text-inherit dark:bg-yellow-600"
+          }
+        >
+          {draft.slice(start, start + length)}
+        </mark>,
+      );
+      cursor = start + length;
+    });
+    parts.push(draft.slice(cursor));
+    return parts;
+  }, [draft, matchIndex, matches, query]);
 
   useEffect(() => {
     if (!fullscreen) return;
@@ -90,8 +126,15 @@ export function WorkflowsPanel(): React.ReactNode {
     const start = matches[index];
     setMatchIndex(index);
     requestAnimationFrame(() => {
-      editorRef.current?.focus();
-      editorRef.current?.setSelectionRange(start, start + query.trim().length);
+      const editor = editorRef.current;
+      if (!editor) return;
+      editor.focus();
+      editor.setSelectionRange(start, start + query.trim().length);
+      requestAnimationFrame(() => {
+        if (!highlightRef.current) return;
+        highlightRef.current.scrollTop = editor.scrollTop;
+        highlightRef.current.scrollLeft = editor.scrollLeft;
+      });
     });
   };
 
@@ -201,6 +244,36 @@ export function WorkflowsPanel(): React.ReactNode {
     }
   };
 
+  const upload = async (file?: File) => {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      if (!file.name.toLowerCase().endsWith(".md"))
+        throw new Error("Selecione um arquivo .md.");
+      const content = await file.text();
+      if (!content.trim()) throw new Error("O arquivo Markdown está vazio.");
+      const next = { ...workflows, [file.name]: content };
+      const updated = await updateContext(next, activeId);
+      setSelectedId(file.name);
+      setDraft(content);
+      setQuery("");
+      setMatchIndex(-1);
+      setMessage(`${file.name} salvo · versão ${updated?.version}.`);
+      toast.success("Salvo com sucesso", {
+        description: `${file.name} · ${workflowVersion(file.name, content)}`,
+      });
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Falha ao carregar workflow.",
+      );
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   const activate = async (id: string | null) => {
     setBusy(true);
     setError(null);
@@ -299,10 +372,15 @@ export function WorkflowsPanel(): React.ReactNode {
               }}
               className={`mb-1 flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm ${selectedId === id ? "bg-neutral-100 dark:bg-neutral-800" : "hover:bg-neutral-50 dark:hover:bg-neutral-900"}`}
             >
-              <span className="truncate">{id}</span>
-              {activeId === id && (
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              )}
+              <span className="min-w-0 truncate">{id}</span>
+              <span className="flex shrink-0 items-center gap-2">
+                <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
+                  {workflowVersion(id, workflows[id] ?? "")}
+                </span>
+                {activeId === id && (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                )}
+              </span>
             </button>
           ))}
           {ids.length === 0 && (
@@ -324,6 +402,23 @@ export function WorkflowsPanel(): React.ReactNode {
                   </p>
                 </div>
                 <div className="flex gap-2">
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept=".md,text/markdown"
+                    aria-label="Arquivo Markdown do workflow"
+                    className="hidden"
+                    onChange={(event) => void upload(event.target.files?.[0])}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={busy}
+                    className="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm disabled:opacity-40"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Carregar .md
+                  </button>
                   <button
                     type="button"
                     onClick={() => setFullscreen((value) => !value)}
@@ -439,16 +534,38 @@ export function WorkflowsPanel(): React.ReactNode {
                   <ChevronDown className="h-4 w-4" />
                 </button>
               </div>
-              <textarea
-                ref={editorRef}
-                value={draft}
-                onChange={(event) => {
-                  setDraft(event.target.value);
-                  setMatchIndex(-1);
-                }}
-                spellCheck={false}
-                className={`${fullscreen ? "min-h-[calc(100vh-20rem)]" : "min-h-[48vh]"} w-full resize-y bg-transparent p-4 font-mono text-sm leading-6 outline-none`}
-              />
+              <div className="relative">
+                {matches.length > 0 && (
+                  <pre
+                    ref={highlightRef}
+                    data-testid="workflow-highlight-layer"
+                    aria-hidden="true"
+                    className={`${fullscreen ? "min-h-[calc(100vh-20rem)]" : "min-h-[48vh]"} pointer-events-none absolute inset-0 overflow-hidden p-4 font-mono text-sm leading-6 break-words whitespace-pre-wrap`}
+                    style={{ scrollbarGutter: "stable" }}
+                  >
+                    {highlightedDraft}
+                    {draft.endsWith("\n") ? " " : null}
+                  </pre>
+                )}
+                <textarea
+                  ref={editorRef}
+                  value={draft}
+                  onChange={(event) => {
+                    setDraft(event.target.value);
+                    setMatchIndex(-1);
+                  }}
+                  onScroll={(event) => {
+                    if (!highlightRef.current) return;
+                    highlightRef.current.scrollTop =
+                      event.currentTarget.scrollTop;
+                    highlightRef.current.scrollLeft =
+                      event.currentTarget.scrollLeft;
+                  }}
+                  spellCheck={false}
+                  style={{ scrollbarGutter: "stable" }}
+                  className={`${fullscreen ? "min-h-[calc(100vh-20rem)]" : "min-h-[48vh]"} relative w-full resize-y bg-transparent p-4 font-mono text-sm leading-6 outline-none ${matches.length ? "text-transparent caret-neutral-950 selection:bg-blue-200 dark:caret-white dark:selection:bg-blue-800" : ""}`}
+                />
+              </div>
               <div className="flex justify-end border-t p-3">
                 <button
                   onClick={() => void save()}
