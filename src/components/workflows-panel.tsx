@@ -486,75 +486,77 @@ export function WorkflowsPanel(): React.ReactNode {
                   </button>
                 </div>
               </div>
-              {assistant && (
-                <div className="px-3">
-                  <InstructionHistory
-                    key={`${assistant.assistant_id}:${assistant.version}:${selectedId}`}
-                    assistantId={assistant.assistant_id}
-                    field="workflows"
-                    workflowId={selectedId}
-                    version={assistant.version}
-                    disabled={busy}
-                    onSelect={setDraft}
-                    hideCurrentVersion
+              <div className="mx-3 mt-3 grid items-start gap-2 lg:grid-cols-2">
+                {assistant && (
+                  <div className="[&>section]:mt-0">
+                    <InstructionHistory
+                      key={`${assistant.assistant_id}:${assistant.version}:${selectedId}`}
+                      assistantId={assistant.assistant_id}
+                      field="workflows"
+                      workflowId={selectedId}
+                      version={assistant.version}
+                      disabled={busy}
+                      onSelect={setDraft}
+                      hideCurrentVersion
+                    />
+                  </div>
+                )}
+                <div className="flex items-center gap-2 rounded-lg border px-3 py-2">
+                  <Search className="h-4 w-4 shrink-0 text-neutral-500" />
+                  <input
+                    value={query}
+                    onChange={(event) => {
+                      setQuery(event.target.value);
+                      setMatchIndex(-1);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        selectMatch(
+                          event.shiftKey
+                            ? matchIndex < 0
+                              ? matches.length - 1
+                              : matchIndex - 1
+                            : matchIndex + 1,
+                        );
+                      }
+                    }}
+                    aria-label="Buscar no workflow"
+                    placeholder="Buscar no workflow"
+                    className="min-w-0 flex-1 bg-transparent text-sm outline-none"
                   />
-                </div>
-              )}
-              <div className="mx-3 mt-3 flex items-center gap-2 rounded-lg border px-3 py-2">
-                <Search className="h-4 w-4 shrink-0 text-neutral-500" />
-                <input
-                  value={query}
-                  onChange={(event) => {
-                    setQuery(event.target.value);
-                    setMatchIndex(-1);
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
+                  <span className="shrink-0 text-xs text-neutral-500">
+                    {query.trim()
+                      ? matches.length
+                        ? matchIndex >= 0
+                          ? `${matchIndex + 1} de ${matches.length}`
+                          : `${matches.length} ${matches.length === 1 ? "resultado" : "resultados"}`
+                        : "0 resultados"
+                      : ""}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
                       selectMatch(
-                        event.shiftKey
-                          ? matchIndex < 0
-                            ? matches.length - 1
-                            : matchIndex - 1
-                          : matchIndex + 1,
-                      );
+                        matchIndex < 0 ? matches.length - 1 : matchIndex - 1,
+                      )
                     }
-                  }}
-                  aria-label="Buscar no workflow"
-                  placeholder="Buscar no workflow"
-                  className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-                />
-                <span className="shrink-0 text-xs text-neutral-500">
-                  {query.trim()
-                    ? matches.length
-                      ? matchIndex >= 0
-                        ? `${matchIndex + 1} de ${matches.length}`
-                        : `${matches.length} ${matches.length === 1 ? "resultado" : "resultados"}`
-                      : "0 resultados"
-                    : ""}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    selectMatch(
-                      matchIndex < 0 ? matches.length - 1 : matchIndex - 1,
-                    )
-                  }
-                  disabled={!matches.length}
-                  aria-label="Ocorrência anterior"
-                  className="rounded p-1 hover:bg-neutral-100 disabled:opacity-30 dark:hover:bg-neutral-800"
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => selectMatch(matchIndex + 1)}
-                  disabled={!matches.length}
-                  aria-label="Próxima ocorrência"
-                  className="rounded p-1 hover:bg-neutral-100 disabled:opacity-30 dark:hover:bg-neutral-800"
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </button>
+                    disabled={!matches.length}
+                    aria-label="Ocorrência anterior"
+                    className="rounded p-1 hover:bg-neutral-100 disabled:opacity-30 dark:hover:bg-neutral-800"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => selectMatch(matchIndex + 1)}
+                    disabled={!matches.length}
+                    aria-label="Próxima ocorrência"
+                    className="rounded p-1 hover:bg-neutral-100 disabled:opacity-30 dark:hover:bg-neutral-800"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
               <div className="relative">
                 {matches.length > 0 && (

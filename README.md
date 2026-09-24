@@ -1,5 +1,8 @@
 # Agente Zerai
 
+Frontend 0.6.4 keeps Workflow history and in-document search on the same row on
+desktop. Mobile retains the existing stacked layout.
+
 Frontend 0.1.9 improves Dataset navigation with document titles, declared type
 badges, type filters/counts and matching excerpts. Search covers the complete
 published document (including YAML metadata), title and path, ignoring case and
@@ -308,6 +311,7 @@ const streamValue = useTypedStream({
   },
 });
 ```
+
 # Direct pilot link
 
 [Published chat](https://agent-chat-ui-fork-production.up.railway.app/) — 0.1.1,
@@ -324,6 +328,7 @@ Existing explicit runtime query parameters still work for operator diagnostics.
 This does not create a restricted guest account: the existing anonymous lab
 exposes operator controls/history. Share only with authorized testers and use
 synthetic data. Never put an LLM key in a URL or a `NEXT_PUBLIC_` variable.
+
 # Header settings — 0.1.2
 
 The header gear replaces the GitHub link in both empty and active chats. It opens
