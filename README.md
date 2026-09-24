@@ -360,6 +360,8 @@ System Prompt and Agent Instructions provide the same highlighted find behavior,
 including `Shift+Enter` for the previous occurrence.
 The Workflow toolbar groups **Novo** and **Carregar .md**; workflow history stays
 available without showing the unrelated full-Assistant version number.
+Each Workflow file has an independent revision number. Its sidebar badge advances
+only when that file changes, and its history omits unrelated Assistant saves.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
 

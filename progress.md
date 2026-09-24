@@ -1,5 +1,8 @@
 # Runtime audit fixes
 
+- Workflow editor 0.6.2: each Workflow file now has an independent persisted
+  revision counter used by its sidebar badge, save feedback and filtered history.
+
 - Workflow editor 0.6.1: Markdown upload moved beside New and the redundant
   Assistant version label is hidden while version history remains available.
 
