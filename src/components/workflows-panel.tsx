@@ -19,8 +19,13 @@ import {
 import { InstructionHistory } from "@/components/instruction-history";
 import { getApiKey } from "@/lib/api-key";
 import { resolveAssistant, saveAssistantContext } from "@/lib/assistant-config";
-
-type WorkflowMap = Record<string, string>;
+import {
+  advanceWorkflowVersions,
+  loadAllAssistantVersions,
+  type WorkflowMap,
+  type WorkflowVersionMap,
+  workflowVersionMap,
+} from "@/lib/workflow-versions";
 
 function getConnection() {
   const params = new URLSearchParams(window.location.search);
@@ -45,17 +50,12 @@ function slug(value: string): string {
   );
 }
 
-function workflowVersion(id: string, content: string): string {
-  const declared = content.match(
-    /\bvers(?:ã|a)o\s*:\s*v?(\d+(?:\.\d+)*)/i,
-  )?.[1];
-  const filename = id.match(/(?:^|[_.-])v(\d+(?:\.\d+)*)(?=[_.-]|$)/i)?.[1];
-  return `V${declared ?? filename ?? "1"}`;
-}
-
 export function WorkflowsPanel(): React.ReactNode {
   const [assistant, setAssistant] = useState<Assistant | null>(null);
   const [workflows, setWorkflows] = useState<WorkflowMap>({});
+  const [workflowVersions, setWorkflowVersions] = useState<WorkflowVersionMap>(
+    {},
+  );
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -160,8 +160,17 @@ export function WorkflowsPanel(): React.ReactNode {
         typeof context.active_workflow_id === "string"
           ? context.active_workflow_id
           : null;
+      const history = await loadAllAssistantVersions(
+        client,
+        record.assistant_id,
+      );
+      if (!history.some((item) => item.version === record.version)) {
+        history.push(record);
+      }
+      const versions = workflowVersionMap(history, remote);
       setAssistant(record);
       setWorkflows(remote);
+      setWorkflowVersions(versions);
       setActiveId(active);
       const first =
         active && remote[active] ? active : (Object.keys(remote)[0] ?? null);
@@ -190,15 +199,22 @@ export function WorkflowsPanel(): React.ReactNode {
     const activeWorkflow = nextActiveId
       ? (nextWorkflows[nextActiveId] ?? "")
       : "";
+    const nextVersions = advanceWorkflowVersions(
+      workflows,
+      nextWorkflows,
+      workflowVersions,
+    );
     const updated = await saveAssistantContext(client, assistant.assistant_id, {
       workflows: nextWorkflows,
+      workflow_versions: nextVersions,
       active_workflow_id: nextActiveId,
       active_workflow: activeWorkflow,
     });
     setAssistant(updated);
     setWorkflows(nextWorkflows);
+    setWorkflowVersions(nextVersions);
     setActiveId(nextActiveId);
-    return updated;
+    return { updated, workflowVersions: nextVersions };
   };
 
   const create = async () => {
@@ -218,7 +234,7 @@ export function WorkflowsPanel(): React.ReactNode {
       setSelectedId(id);
       setDraft(template);
       setNewName("");
-      setMessage(`Workflow criado · versão ${updated?.version}.`);
+      setMessage(`Workflow criado · V${updated?.workflowVersions[id] ?? 1}.`);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Falha ao criar workflow.",
@@ -236,9 +252,10 @@ export function WorkflowsPanel(): React.ReactNode {
     setMessage(null);
     try {
       const updated = await updateContext(next, activeId);
-      setMessage(`Workflow salvo · versão ${updated?.version}.`);
+      const version = updated?.workflowVersions[selectedId] ?? 1;
+      setMessage(`Workflow salvo · V${version}.`);
       toast.success("Salvo com sucesso", {
-        description: `Workflow · versão ${updated?.version}`,
+        description: `${selectedId} · V${version}`,
       });
     } catch (cause) {
       setError(
@@ -265,9 +282,10 @@ export function WorkflowsPanel(): React.ReactNode {
       setDraft(content);
       setQuery("");
       setMatchIndex(-1);
-      setMessage(`${file.name} salvo · versão ${updated?.version}.`);
+      const version = updated?.workflowVersions[file.name] ?? 1;
+      setMessage(`${file.name} salvo · V${version}.`);
       toast.success("Salvo com sucesso", {
-        description: `${file.name} · ${workflowVersion(file.name, content)}`,
+        description: `${file.name} · V${version}`,
       });
     } catch (cause) {
       setError(
@@ -284,10 +302,8 @@ export function WorkflowsPanel(): React.ReactNode {
     setError(null);
     setMessage(null);
     try {
-      const updated = await updateContext(workflows, id);
-      setMessage(
-        `${id ? `Workflow ${id} ativado` : "Workflow ativo removido"} · versão ${updated?.version}.`,
-      );
+      await updateContext(workflows, id);
+      setMessage(id ? `Workflow ${id} ativado.` : "Workflow ativo removido.");
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Falha ao ativar workflow.",
@@ -306,11 +322,11 @@ export function WorkflowsPanel(): React.ReactNode {
     setError(null);
     setMessage(null);
     try {
-      const updated = await updateContext(next, nextActive);
+      await updateContext(next, nextActive);
       const first = Object.keys(next)[0] ?? null;
       setSelectedId(first);
       setDraft(first ? (next[first] ?? "") : "");
-      setMessage(`Workflow removido · versão ${updated?.version}.`);
+      setMessage("Workflow removido.");
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Falha ao remover workflow.",
@@ -397,7 +413,7 @@ export function WorkflowsPanel(): React.ReactNode {
               <span className="min-w-0 truncate">{id}</span>
               <span className="flex shrink-0 items-center gap-2">
                 <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-semibold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100">
-                  {workflowVersion(id, workflows[id] ?? "")}
+                  V{workflowVersions[id] ?? 1}
                 </span>
                 {activeId === id && (
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />

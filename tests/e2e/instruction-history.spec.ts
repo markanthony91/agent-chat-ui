@@ -264,6 +264,7 @@ test("Workflow Save confirms success and preserves instructions", async ({
     page.getByRole("button", { name: "Carregar .md", exact: true }),
   ).toHaveCount(1);
   await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /sample V1/ })).toBeVisible();
   await page.getByLabel("Buscar no workflow").fill("workflow");
   await expect(page.getByText("1 resultado", { exact: true })).toBeVisible();
   await expect(
@@ -297,6 +298,10 @@ test("Workflow Save confirms success and preserves instructions", async ({
     page.getByText("Salvo com sucesso", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /sample V2/ })).toBeVisible();
+  expect((record.context as Record<string, unknown>).workflow_versions).toEqual(
+    { sample: 2 },
+  );
   expect(record.context.system_prompt).toBe("Keep prompt");
   expect(record.context.active_workflow).toBe("New workflow");
   await page.getByRole("button", { name: "Ver histórico" }).click();
@@ -311,6 +316,10 @@ test("Workflow Save confirms success and preserves instructions", async ({
   expect(record.context.active_workflow).toBe("New workflow");
   await page.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /sample V3/ })).toBeVisible();
+  expect((record.context as Record<string, unknown>).workflow_versions).toEqual(
+    { sample: 3 },
+  );
   expect(record.context.system_prompt).toBe("Keep prompt");
   expect(record.context.active_workflow).toBe("Original workflow");
   const distantWorkflow = `# Fluxo\n\nVersão: 6\n\nworkflow\n${Array.from(
@@ -325,7 +334,17 @@ test("Workflow Save confirms success and preserves instructions", async ({
   await expect(
     page.getByText("flow_consolidado_v6_logico.md", { exact: true }).first(),
   ).toBeVisible();
-  await expect(page.getByText("V6", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: /flow_consolidado_v6_logico\.md V1/,
+    }),
+  ).toBeVisible();
+  expect((record.context as Record<string, unknown>).workflow_versions).toEqual(
+    {
+      sample: 3,
+      "flow_consolidado_v6_logico.md": 1,
+    },
+  );
   expect(
     (record.context.workflows as Record<string, string>)[
       "flow_consolidado_v6_logico.md"

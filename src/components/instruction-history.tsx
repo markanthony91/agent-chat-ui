@@ -4,6 +4,10 @@ import { type ReactNode, useState } from "react";
 import { Client } from "@langchain/langgraph-sdk";
 import { getRuntimeConnection } from "@/lib/runtime-connection";
 import { runRawCompiler } from "@/lib/raw-compiler";
+import {
+  loadAllAssistantVersions,
+  workflowRevisions,
+} from "@/lib/workflow-versions";
 
 type Revision = { version: number; created_at: string; content?: string };
 type Props = {
@@ -42,24 +46,33 @@ export function InstructionHistory({
       let records: Revision[];
       if (assistantId && field) {
         const client = new Client(getRuntimeConnection());
-        const history = await client.assistants.getVersions(assistantId, {
-          limit: 20,
-          offset,
-        });
-        records = history.map((item) => {
-          const value = (item.context as Record<string, unknown> | undefined)?.[
-            field
-          ];
-          const content =
-            field === "workflows" && workflowId
-              ? (value as Record<string, unknown> | undefined)?.[workflowId]
-              : value;
-          return {
-            version: item.version,
-            created_at: item.created_at,
-            content: typeof content === "string" ? content : undefined,
-          };
-        });
+        if (field === "workflows" && workflowId) {
+          records = workflowRevisions(
+            await loadAllAssistantVersions(client, assistantId),
+            workflowId,
+          )
+            .reverse()
+            .map(({ version, created_at, content }) => ({
+              version,
+              created_at,
+              content,
+            }));
+        } else {
+          const history = await client.assistants.getVersions(assistantId, {
+            limit: 20,
+            offset,
+          });
+          records = history.map((item) => {
+            const value = (
+              item.context as Record<string, unknown> | undefined
+            )?.[field];
+            return {
+              version: item.version,
+              created_at: item.created_at,
+              content: typeof value === "string" ? value : undefined,
+            };
+          });
+        }
       } else {
         const result = await runRawCompiler({
           operation: "get_agents_versions",
@@ -71,7 +84,7 @@ export function InstructionHistory({
         records = result.versions as Revision[];
       }
       setVersions((current) => (offset ? [...current, ...records] : records));
-      setMore(records.length === 20);
+      setMore(field !== "workflows" && records.length === 20);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Falha ao carregar histórico.",
@@ -110,7 +123,9 @@ export function InstructionHistory({
         <div className="mt-3 space-y-3">
           <p className="text-xs text-neutral-500">
             {assistantId
-              ? "Versões do Assistant: cada salvamento preserva a configuração completa. "
+              ? field === "workflows"
+                ? "Versões deste arquivo de Workflow. "
+                : "Versões do Assistant: cada salvamento preserva a configuração completa. "
               : "Versões do RAW AGENTS.md. "}
             Carregue uma versão no editor e clique em Salvar para criar uma nova
             versão.
