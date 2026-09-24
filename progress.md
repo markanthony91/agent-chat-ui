@@ -1,5 +1,8 @@
 # Runtime audit fixes
 
+- Workflow editor 0.6.1: Markdown upload moved beside New and the redundant
+  Assistant version label is hidden while version history remains available.
+
 - Instruction editors 0.6.0: System Prompt and Agent Instructions now support
   highlighted search, Enter navigation and automatic scrolling to each match.
 
