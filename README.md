@@ -356,6 +356,8 @@ workflow under the exact filename, version badges use the document's declared
 highlighted while `Enter` advances to the next occurrence.
 Focus remains in the search field, so repeated `Enter` presses never edit the
 workflow text. The editor scrolls to keep the active occurrence visible.
+System Prompt and Agent Instructions provide the same highlighted find behavior,
+including `Shift+Enter` for the previous occurrence.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
 

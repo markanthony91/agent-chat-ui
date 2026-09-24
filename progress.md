@@ -1,5 +1,8 @@
 # Runtime audit fixes
 
+- Instruction editors 0.6.0: System Prompt and Agent Instructions now support
+  highlighted search, Enter navigation and automatic scrolling to each match.
+
 - Workflow editor 0.5.5: Enter scrolls the editor to keep the active search
   occurrence visible without moving focus away from the search field.
 
