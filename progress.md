@@ -1,5 +1,8 @@
 # Runtime audit fixes
 
+- Workflow editor 0.5.3: persistent Markdown upload named from the file,
+  per-document version badges, yellow match highlighting and Enter navigation.
+
 - Workflow editor 0.5.2: full-screen editing and in-content search with previous
   and next occurrence navigation.
 
