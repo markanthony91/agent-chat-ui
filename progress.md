@@ -1,7 +1,9 @@
 # Runtime audit fixes
 
 - Workflow editor 0.6.4: history and in-document search share the same row on
-  desktop while retaining the stacked mobile layout.
+  desktop while retaining the stacked mobile layout. Deployment
+  `ac8b0859-4fb8-4e50-9275-b524de6b3c23` published successfully; the four
+  targeted browser scenarios passed against the published UI.
 
 - Playground Simulator 0.6.3: dummy phone field exposed beside CPF for new
   Playground conversations only; deployment `f47883ad-18b5-49f3-8608-1f3669d07fcd`
