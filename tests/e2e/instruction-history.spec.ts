@@ -248,6 +248,22 @@ test("Workflow Save confirms success and preserves instructions", async ({
     "Original workflow",
   );
   await expect(page.getByText("V1", { exact: true })).toBeVisible();
+  const workflowToolbar = page
+    .getByPlaceholder("Nome do novo workflow")
+    .locator("..");
+  await expect(
+    workflowToolbar.getByRole("button", { name: "Novo", exact: true }),
+  ).toBeVisible();
+  await expect(
+    workflowToolbar.getByRole("button", {
+      name: "Carregar .md",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Carregar .md", exact: true }),
+  ).toHaveCount(1);
+  await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
   await page.getByLabel("Buscar no workflow").fill("workflow");
   await expect(page.getByText("1 resultado", { exact: true })).toBeVisible();
   await expect(
@@ -280,9 +296,7 @@ test("Workflow Save confirms success and preserves instructions", async ({
   await expect(
     page.getByText("Salvo com sucesso", { exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByText("Versão atual: 2", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
   expect(record.context.system_prompt).toBe("Keep prompt");
   expect(record.context.active_workflow).toBe("New workflow");
   await page.getByRole("button", { name: "Ver histórico" }).click();
@@ -296,9 +310,7 @@ test("Workflow Save confirms success and preserves instructions", async ({
   );
   expect(record.context.active_workflow).toBe("New workflow");
   await page.getByRole("button", { name: "Salvar", exact: true }).click();
-  await expect(
-    page.getByText("Versão atual: 3", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
   expect(record.context.system_prompt).toBe("Keep prompt");
   expect(record.context.active_workflow).toBe("Original workflow");
   const distantWorkflow = `# Fluxo\n\nVersão: 6\n\nworkflow\n${Array.from(

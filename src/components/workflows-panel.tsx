@@ -352,6 +352,14 @@ export function WorkflowsPanel(): React.ReactNode {
           placeholder="Nome do novo workflow"
           className="min-w-[220px] flex-1 rounded-lg border bg-transparent px-3 py-2 text-sm outline-none"
         />
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".md,text/markdown"
+          aria-label="Arquivo Markdown do workflow"
+          className="hidden"
+          onChange={(event) => void upload(event.target.files?.[0])}
+        />
         <button
           onClick={() => void create()}
           disabled={busy || !newName.trim()}
@@ -359,6 +367,15 @@ export function WorkflowsPanel(): React.ReactNode {
         >
           <Plus className="h-4 w-4" />
           Novo
+        </button>
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+          className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm disabled:opacity-40"
+        >
+          <Upload className="h-4 w-4" />
+          Carregar .md
         </button>
       </div>
       <div
@@ -407,23 +424,6 @@ export function WorkflowsPanel(): React.ReactNode {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept=".md,text/markdown"
-                    aria-label="Arquivo Markdown do workflow"
-                    className="hidden"
-                    onChange={(event) => void upload(event.target.files?.[0])}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={busy}
-                    className="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm disabled:opacity-40"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Carregar .md
-                  </button>
                   <button
                     type="button"
                     onClick={() => setFullscreen((value) => !value)}
@@ -480,6 +480,7 @@ export function WorkflowsPanel(): React.ReactNode {
                     version={assistant.version}
                     disabled={busy}
                     onSelect={setDraft}
+                    hideCurrentVersion
                   />
                 </div>
               )}

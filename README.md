@@ -358,6 +358,8 @@ Focus remains in the search field, so repeated `Enter` presses never edit the
 workflow text. The editor scrolls to keep the active occurrence visible.
 System Prompt and Agent Instructions provide the same highlighted find behavior,
 including `Shift+Enter` for the previous occurrence.
+The Workflow toolbar groups **Novo** and **Carregar .md**; workflow history stays
+available without showing the unrelated full-Assistant version number.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
 

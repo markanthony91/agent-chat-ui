@@ -14,6 +14,7 @@ type Props = {
   disabled: boolean;
   onSelect: (content: string) => void;
   action?: ReactNode;
+  hideCurrentVersion?: boolean;
 };
 
 export function InstructionHistory({
@@ -24,6 +25,7 @@ export function InstructionHistory({
   disabled,
   onSelect,
   action,
+  hideCurrentVersion = false,
 }: Props) {
   const [versions, setVersions] = useState<Revision[]>([]);
   const [selected, setSelected] = useState<Revision | null>(null);
@@ -85,10 +87,14 @@ export function InstructionHistory({
       className="mt-4 rounded-lg border p-3 text-sm"
     >
       <div className="flex items-center justify-between gap-2">
-        <span>
-          {version ? `Versão atual: ${version}` : "Histórico de versões"}
-        </span>
-        <div className="flex items-center gap-2">
+        {!hideCurrentVersion && (
+          <span>
+            {version ? `Versão atual: ${version}` : "Histórico de versões"}
+          </span>
+        )}
+        <div
+          className={`flex items-center gap-2 ${hideCurrentVersion ? "ml-auto" : ""}`}
+        >
           {action}
           <button
             type="button"
