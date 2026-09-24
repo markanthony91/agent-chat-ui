@@ -1,5 +1,10 @@
 # Runtime audit fixes
 
+- Workflow editor 0.6.4: history and in-document search share the same row on
+  desktop while retaining the stacked mobile layout. Deployment
+  `ac8b0859-4fb8-4e50-9275-b524de6b3c23` published successfully; the four
+  targeted browser scenarios passed against the published UI.
+
 - Playground Simulator 0.6.3: dummy phone field exposed beside CPF for new
   Playground conversations only; deployment `f47883ad-18b5-49f3-8608-1f3669d07fcd`
   published and verified in the live UI.
@@ -60,7 +65,7 @@
 - [x] Native streamed messages, reconnect and provider cancellation checks.
 - [x] TypeScript, lint (no errors), optimized build and local browser journeys.
 - [x] Authorized Railway publication: deployment 4e662b1a-1927-47cc-aeae-5f9b8b4be0c2,
-  package 0.1.0; real Qwen tool smoke and browser reload passed (2026-09-14).
+      package 0.1.0; real Qwen tool smoke and browser reload passed (2026-09-14).
 - [ ] Validate journeys and latency with the real configured Qwen endpoint.
 
 ## Candidate 0.1.1 — post-stream diagnostics
@@ -70,6 +75,7 @@
 - [x] Warning survives reload, without duplicate messages; 10 local Playwright tests pass.
 - [x] Local TypeScript and optimized webpack build pass; lint: zero errors, 24 existing warnings.
 - [ ] Publish this candidate and validate its UI against the deployed backend.
+
 ## Authorized rollout — 2026-09-15
 
 - Configure the existing NEXT_PUBLIC_API_URL / NEXT_PUBLIC_ASSISTANT_ID defaults
@@ -82,6 +88,7 @@
   tools, post-stream audit, history/reload, zero page errors and three widths.
   First visible text 3958 ms, total first turn 4153 ms (single UTC scenario).
   The deployed model was Qwen/Qwen3-30B-A3B-Instruct-2507-FP8 from backend 0.2.2.
+
 ## Tool usage details — 0.1.4
 
 - Reuse Tools panel to display actual model descriptions and public parameters.

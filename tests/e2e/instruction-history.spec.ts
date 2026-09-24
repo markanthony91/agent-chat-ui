@@ -265,6 +265,14 @@ test("Workflow Save confirms success and preserves instructions", async ({
   ).toHaveCount(1);
   await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
   await expect(page.getByRole("button", { name: /sample V1/ })).toBeVisible();
+  const historyBox = await page
+    .getByLabel("Histórico de versões")
+    .boundingBox();
+  const searchBox = await page
+    .getByLabel("Buscar no workflow")
+    .locator("..")
+    .boundingBox();
+  expect(historyBox?.y).toBe(searchBox?.y);
   await page.getByLabel("Buscar no workflow").fill("workflow");
   await expect(page.getByText("1 resultado", { exact: true })).toBeVisible();
   await expect(
