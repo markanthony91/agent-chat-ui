@@ -119,12 +119,34 @@ for (const raw of [false, true]) {
     const editor = page.locator("textarea").first();
     await expect(editor).toHaveValue("Original instructions");
     if (!raw) {
+      const loadedAgents = `# Instructions\n\n${Array.from(
+        { length: 80 },
+        (_, index) => `linha ${index + 1}`,
+      ).join("\n")}\nInstructions finais`;
       await page.getByLabel("Arquivo Markdown do AGENTS.md").setInputFiles({
         name: "AGENTS.md",
         mimeType: "text/markdown",
-        buffer: Buffer.from("# Instructions loaded from file"),
+        buffer: Buffer.from(loadedAgents),
       });
-      await expect(editor).toHaveValue("# Instructions loaded from file");
+      await expect(editor).toHaveValue(loadedAgents);
+      const agentsSearch = page.getByRole("textbox", {
+        name: "Buscar no AGENTS.md",
+        exact: true,
+      });
+      await agentsSearch.fill("Instructions");
+      await expect(
+        page.getByTestId("agent-instructions-highlight-layer").locator("mark"),
+      ).toHaveCount(2);
+      await agentsSearch.press("Enter");
+      const firstMatchScrollTop = await editor.evaluate(
+        (element) => element.scrollTop,
+      );
+      await page.keyboard.press("Enter");
+      await expect(agentsSearch).toBeFocused();
+      await expect
+        .poll(() => editor.evaluate((element) => element.scrollTop))
+        .toBeGreaterThan(firstMatchScrollTop);
+      await expect(editor).toHaveValue(loadedAgents);
       await expect(
         page.getByText("Alterações não salvas", { exact: true }),
       ).toBeVisible();
