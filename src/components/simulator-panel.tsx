@@ -10,6 +10,7 @@ type SimulatorFixture = {
   customer_id?: string;
   full_name?: string;
   cpf?: string;
+  phone?: string;
   birth_date?: string;
   institution?: string;
   product?: string;
@@ -188,6 +189,7 @@ export function SimulatorPanel(): React.ReactNode {
               {inputField("Customer ID", "customer_id", "text", "ex: cust_123")}
               {inputField("Full Name", "full_name", "text", "ex: João da Silva")}
               {inputField("CPF", "cpf", "text", "ex: 12345678901")}
+              {inputField("Telefone dummy", "phone", "tel", "ex: +5511999999999")}
               {inputField("Birth Date", "birth_date", "date")}
             </div>
             <div className="mt-4 flex flex-col gap-3">
