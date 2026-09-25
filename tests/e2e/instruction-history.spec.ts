@@ -119,12 +119,34 @@ for (const raw of [false, true]) {
     const editor = page.locator("textarea").first();
     await expect(editor).toHaveValue("Original instructions");
     if (!raw) {
+      const loadedAgents = `# Instructions\n\n${Array.from(
+        { length: 80 },
+        (_, index) => `linha ${index + 1}`,
+      ).join("\n")}\nInstructions finais`;
       await page.getByLabel("Arquivo Markdown do AGENTS.md").setInputFiles({
         name: "AGENTS.md",
         mimeType: "text/markdown",
-        buffer: Buffer.from("# Instructions loaded from file"),
+        buffer: Buffer.from(loadedAgents),
       });
-      await expect(editor).toHaveValue("# Instructions loaded from file");
+      await expect(editor).toHaveValue(loadedAgents);
+      const agentsSearch = page.getByRole("textbox", {
+        name: "Buscar no AGENTS.md",
+        exact: true,
+      });
+      await agentsSearch.fill("Instructions");
+      await expect(
+        page.getByTestId("agent-instructions-highlight-layer").locator("mark"),
+      ).toHaveCount(2);
+      await agentsSearch.press("Enter");
+      const firstMatchScrollTop = await editor.evaluate(
+        (element) => element.scrollTop,
+      );
+      await page.keyboard.press("Enter");
+      await expect(agentsSearch).toBeFocused();
+      await expect
+        .poll(() => editor.evaluate((element) => element.scrollTop))
+        .toBeGreaterThan(firstMatchScrollTop);
+      await expect(editor).toHaveValue(loadedAgents);
       await expect(
         page.getByText("Alterações não salvas", { exact: true }),
       ).toBeVisible();
@@ -194,18 +216,22 @@ test("Workflow Save confirms success and preserves instructions", async ({
       active_workflow: "Original workflow",
     },
   };
+  const versions = [structuredClone(record)];
   await page.route("https://runtime.invalid/**", async (route) => {
     const req = route.request();
     const path = new URL(req.url()).pathname;
     if (path === "/assistants/search") return route.fulfill({ json: [record] });
-    if (path.endsWith("/versions")) return route.fulfill({ json: [record] });
+    if (path.endsWith("/versions"))
+      return route.fulfill({ json: versions.slice().reverse() });
     if (path === `/assistants/${id}`) {
-      if (req.method() === "PATCH")
+      if (req.method() === "PATCH") {
         record = {
           ...record,
           version: record.version + 1,
           context: req.postDataJSON().context,
         };
+        versions.push(structuredClone(record));
+      }
       return route.fulfill({ json: record });
     }
     return route.fulfill({ json: [] });
@@ -221,11 +247,139 @@ test("Workflow Save confirms success and preserves instructions", async ({
   await expect(page.locator("textarea").first()).toHaveValue(
     "Original workflow",
   );
+  await expect(page.getByText("V1", { exact: true })).toBeVisible();
+  const workflowToolbar = page
+    .getByPlaceholder("Nome do novo workflow")
+    .locator("..");
+  await expect(
+    workflowToolbar.getByRole("button", { name: "Novo", exact: true }),
+  ).toBeVisible();
+  await expect(
+    workflowToolbar.getByRole("button", {
+      name: "Carregar .md",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Carregar .md", exact: true }),
+  ).toHaveCount(1);
+  await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /sample V1/ })).toBeVisible();
+  const historyBox = await page
+    .getByLabel("Histórico de versões")
+    .boundingBox();
+  const searchBox = await page
+    .getByLabel("Buscar no workflow")
+    .locator("..")
+    .boundingBox();
+  expect(historyBox?.y).toBe(searchBox?.y);
+  await page.getByLabel("Buscar no workflow").fill("workflow");
+  await expect(page.getByText("1 resultado", { exact: true })).toBeVisible();
+  await expect(
+    page.getByTestId("workflow-highlight-layer").locator("mark"),
+  ).toHaveCount(1);
+  await page.getByLabel("Buscar no workflow").press("Enter");
+  await expect(page.getByText("1 de 1", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Buscar no workflow")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("textarea").first()).toHaveValue(
+    "Original workflow",
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator("textarea")
+        .first()
+        .evaluate((editor) => {
+          const input = editor as HTMLTextAreaElement;
+          return input.value.slice(input.selectionStart, input.selectionEnd);
+        }),
+    )
+    .toBe("workflow");
+  await page.getByLabel("Ver workflow em tela cheia").click();
+  await expect(page.getByLabel("Sair da tela cheia")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByLabel("Ver workflow em tela cheia")).toBeVisible();
   await page.locator("textarea").first().fill("New workflow");
   await page.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(
     page.getByText("Salvo com sucesso", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /sample V2/ })).toBeVisible();
+  expect((record.context as Record<string, unknown>).workflow_versions).toEqual(
+    { sample: 2 },
+  );
   expect(record.context.system_prompt).toBe("Keep prompt");
   expect(record.context.active_workflow).toBe("New workflow");
+  await page.getByRole("button", { name: "Ver histórico" }).click();
+  await page.getByRole("button", { name: /^v1 ·/ }).click();
+  await expect(page.getByLabel("Conteúdo da versão")).toHaveText(
+    "Original workflow",
+  );
+  await page.getByRole("button", { name: "Carregar v1 no editor" }).click();
+  await expect(page.locator("textarea").first()).toHaveValue(
+    "Original workflow",
+  );
+  expect(record.context.active_workflow).toBe("New workflow");
+  await page.getByRole("button", { name: "Salvar", exact: true }).click();
+  await expect(page.getByText(/Versão atual:/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /sample V3/ })).toBeVisible();
+  expect((record.context as Record<string, unknown>).workflow_versions).toEqual(
+    { sample: 3 },
+  );
+  expect(record.context.system_prompt).toBe("Keep prompt");
+  expect(record.context.active_workflow).toBe("Original workflow");
+  const distantWorkflow = `# Fluxo\n\nVersão: 6\n\nworkflow\n${Array.from(
+    { length: 80 },
+    (_, index) => `linha ${index + 1}`,
+  ).join("\n")}\nworkflow`;
+  await page.getByLabel("Arquivo Markdown do workflow").setInputFiles({
+    name: "flow_consolidado_v6_logico.md",
+    mimeType: "text/markdown",
+    buffer: Buffer.from(distantWorkflow),
+  });
+  await expect(
+    page.getByText("flow_consolidado_v6_logico.md", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: /flow_consolidado_v6_logico\.md V1/,
+    }),
+  ).toBeVisible();
+  expect((record.context as Record<string, unknown>).workflow_versions).toEqual(
+    {
+      sample: 3,
+      "flow_consolidado_v6_logico.md": 1,
+    },
+  );
+  expect(
+    (record.context.workflows as Record<string, string>)[
+      "flow_consolidado_v6_logico.md"
+    ],
+  ).toBe(distantWorkflow);
+  expect(record.context.active_workflow).toBe("Original workflow");
+  await page.getByLabel("Buscar no workflow").fill("workflow");
+  await expect(
+    page.getByTestId("workflow-highlight-layer").locator("mark"),
+  ).toHaveCount(2);
+  await page.getByLabel("Buscar no workflow").press("Enter");
+  await expect(page.getByText("1 de 2", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Buscar no workflow")).toBeFocused();
+  const firstMatchScrollTop = await page
+    .locator("textarea")
+    .first()
+    .evaluate((editor) => editor.scrollTop);
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("2 de 2", { exact: true })).toBeVisible();
+  await expect
+    .poll(() =>
+      page
+        .locator("textarea")
+        .first()
+        .evaluate((editor) => editor.scrollTop),
+    )
+    .toBeGreaterThan(firstMatchScrollTop);
+  await expect(page.locator("textarea").first()).toHaveValue(distantWorkflow);
+  expect(versions).toHaveLength(4);
 });

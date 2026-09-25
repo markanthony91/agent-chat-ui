@@ -168,18 +168,39 @@ for (const reference of ["agent", id]) {
       );
     };
     await open();
+    const loadedPrompt = `# Prompt\n\n${Array.from(
+      { length: 80 },
+      (_, index) => `linha ${index + 1}`,
+    ).join("\n")}\nPrompt final`;
     await page.getByLabel("Arquivo Markdown do System Prompt").setInputFiles({
       name: "system-prompt.md",
       mimeType: "text/markdown",
-      buffer: Buffer.from("# Prompt carregado\n\nConteúdo do arquivo."),
+      buffer: Buffer.from(loadedPrompt),
     });
-    await expect(page.locator("textarea").first()).toHaveValue(
-      "# Prompt carregado\n\nConteúdo do arquivo.",
+    const editor = page.locator("textarea").first();
+    await expect(editor).toHaveValue(loadedPrompt);
+    const promptSearch = page.getByRole("textbox", {
+      name: "Buscar no System Prompt",
+      exact: true,
+    });
+    await promptSearch.fill("Prompt");
+    await expect(
+      page.getByTestId("system-prompt-highlight-layer").locator("mark"),
+    ).toHaveCount(2);
+    await promptSearch.press("Enter");
+    const firstMatchScrollTop = await editor.evaluate(
+      (element) => element.scrollTop,
     );
+    await page.keyboard.press("Enter");
+    await expect(promptSearch).toBeFocused();
+    await expect
+      .poll(() => editor.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(firstMatchScrollTop);
+    await expect(editor).toHaveValue(loadedPrompt);
     await expect(
       page.getByText("Alterações não salvas", { exact: true }),
     ).toBeVisible();
-    await page.locator("textarea").first().fill("Synthetic edited prompt");
+    await editor.fill("Synthetic edited prompt");
     await page.getByRole("button", { name: "Salvar", exact: true }).click();
     await expect(page.getByText("Sincronizado", { exact: true })).toBeVisible();
     await expect(

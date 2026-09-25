@@ -1,5 +1,8 @@
 # Agente Zerai
 
+Frontend 0.6.4 keeps Workflow history and in-document search on the same row on
+desktop. Mobile retains the existing stacked layout.
+
 Frontend 0.1.9 improves Dataset navigation with document titles, declared type
 badges, type filters/counts and matching excerpts. Search covers the complete
 published document (including YAML metadata), title and path, ignoring case and
@@ -51,6 +54,8 @@ See [Runtime integration and validation](docs/RUNTIME_AUDIT.md) for the shared
 backend connection, per-conversation synthetic identity, decimal-safe simulator,
 offer confirmation, streaming and cancellation behavior. Companion backend:
 `simple-agent-template` 0.2.0. Existing WhatsApp and Lovable apps are unchanged.
+The Simulator exposes the existing dummy `phone` field beside CPF for new
+Playground conversations; it does not configure WhatsApp.
 
 Checks: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test:e2e`.
 Browser tests require the local synthetic backend described in that report.
@@ -306,6 +311,7 @@ const streamValue = useTypedStream({
   },
 });
 ```
+
 # Direct pilot link
 
 [Published chat](https://agent-chat-ui-fork-production.up.railway.app/) — 0.1.1,
@@ -322,6 +328,7 @@ Existing explicit runtime query parameters still work for operator diagnostics.
 This does not create a restricted guest account: the existing anonymous lab
 exposes operator controls/history. Share only with authorized testers and use
 synthetic data. Never put an LLM key in a URL or a `NEXT_PUBLIC_` variable.
+
 # Header settings — 0.1.2
 
 The header gear replaces the GitHub link in both empty and active chats. It opens
@@ -349,6 +356,19 @@ RAW Compiler > AGENTS.md has equivalent history backed by the runtime volume,
 including the previous content on the first save (requires backend 0.2.7).
 Workflow and Simulator Save buttons also show a success toast. Failed writes
 keep the error and unsaved editor content; they do not report success.
+The Workflow editor includes in-content search with occurrence navigation and a
+full-screen mode that can also be closed with `Esc`. Markdown upload persists a
+workflow under the exact filename, version badges use the document's declared
+`Versão:` value (falling back to `vN` in the filename), and every search match is
+highlighted while `Enter` advances to the next occurrence.
+Focus remains in the search field, so repeated `Enter` presses never edit the
+workflow text. The editor scrolls to keep the active occurrence visible.
+System Prompt and Agent Instructions provide the same highlighted find behavior,
+including `Shift+Enter` for the previous occurrence.
+The Workflow toolbar groups **Novo** and **Carregar .md**; workflow history stays
+available without showing the unrelated full-Assistant version number.
+Each Workflow file has an independent revision number. Its sidebar badge advances
+only when that file changes, and its history omits unrelated Assistant saves.
 
 Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
 

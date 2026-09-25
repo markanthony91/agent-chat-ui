@@ -1,5 +1,35 @@
 # Runtime audit fixes
 
+- Workflow editor 0.6.4: history and in-document search share the same row on
+  desktop while retaining the stacked mobile layout. Deployment
+  `ac8b0859-4fb8-4e50-9275-b524de6b3c23` published successfully; the four
+  targeted browser scenarios passed against the published UI.
+
+- Playground Simulator 0.6.3: dummy phone field exposed beside CPF for new
+  Playground conversations only; deployment `f47883ad-18b5-49f3-8608-1f3669d07fcd`
+  published and verified in the live UI.
+
+- Workflow editor 0.6.2: each Workflow file now has an independent persisted
+  revision counter used by its sidebar badge, save feedback and filtered history.
+
+- Workflow editor 0.6.1: Markdown upload moved beside New and the redundant
+  Assistant version label is hidden while version history remains available.
+
+- Instruction editors 0.6.0: System Prompt and Agent Instructions now support
+  highlighted search, Enter navigation and automatic scrolling to each match.
+
+- Workflow editor 0.5.5: Enter scrolls the editor to keep the active search
+  occurrence visible without moving focus away from the search field.
+
+- Workflow editor 0.5.4: Enter keeps focus in the workflow search and advances
+  through matches without changing the document.
+
+- Workflow editor 0.5.3: persistent Markdown upload named from the file,
+  per-document version badges, yellow match highlighting and Enter navigation.
+
+- Workflow editor 0.5.2: full-screen editing and in-content search with previous
+  and next occurrence navigation.
+
 - Dataset 0.1.7: nested folder navigation and in-panel normalized name/path filter.
 - Browser regression includes nested disclosure, keyboard, preview paths, empty
   results, accent-insensitive matching, case-sensitive folder identities and errors.
@@ -35,7 +65,7 @@
 - [x] Native streamed messages, reconnect and provider cancellation checks.
 - [x] TypeScript, lint (no errors), optimized build and local browser journeys.
 - [x] Authorized Railway publication: deployment 4e662b1a-1927-47cc-aeae-5f9b8b4be0c2,
-  package 0.1.0; real Qwen tool smoke and browser reload passed (2026-09-14).
+      package 0.1.0; real Qwen tool smoke and browser reload passed (2026-09-14).
 - [ ] Validate journeys and latency with the real configured Qwen endpoint.
 
 ## Candidate 0.1.1 — post-stream diagnostics
@@ -45,6 +75,7 @@
 - [x] Warning survives reload, without duplicate messages; 10 local Playwright tests pass.
 - [x] Local TypeScript and optimized webpack build pass; lint: zero errors, 24 existing warnings.
 - [ ] Publish this candidate and validate its UI against the deployed backend.
+
 ## Authorized rollout — 2026-09-15
 
 - Configure the existing NEXT_PUBLIC_API_URL / NEXT_PUBLIC_ASSISTANT_ID defaults
@@ -57,6 +88,7 @@
   tools, post-stream audit, history/reload, zero page errors and three widths.
   First visible text 3958 ms, total first turn 4153 ms (single UTC scenario).
   The deployed model was Qwen/Qwen3-30B-A3B-Instruct-2507-FP8 from backend 0.2.2.
+
 ## Tool usage details — 0.1.4
 
 - Reuse Tools panel to display actual model descriptions and public parameters.

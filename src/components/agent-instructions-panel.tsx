@@ -8,6 +8,7 @@ import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { RefreshCw, Save, Upload } from "lucide-react";
 import { getApiKey } from "@/lib/api-key";
 import { resolveAssistant, saveAssistantContext } from "@/lib/assistant-config";
+import { FindableTextarea } from "@/components/findable-textarea";
 
 const DEFAULT_AGENTS_URL =
   "https://raw.githubusercontent.com/markanthony91/simple-agent-template/main/config/AGENTS.md";
@@ -116,7 +117,7 @@ export function AgentInstructionsPanel(): React.ReactNode {
     {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{error}</div>}
     {message && <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">{message}</div>}
     {assistant && <InstructionHistory key={`${assistant.assistant_id}:${assistant.version}`} assistantId={assistant.assistant_id} field="agent_instructions" version={assistant.version} disabled={loading || saving} onSelect={setValue} action={<><input ref={agentsFileRef} type="file" accept=".md,text/markdown" aria-label="Arquivo Markdown do AGENTS.md" className="hidden" onChange={(event) => void loadAgentsFile(event.target.files?.[0])} /><button type="button" onClick={() => agentsFileRef.current?.click()} disabled={loading || saving} className="flex items-center gap-2 rounded border px-3 py-1 disabled:opacity-40"><Upload className="h-4 w-4" />Carregar AGENTS.md</button></>} />}
-    <textarea value={value} onChange={(event) => setValue(event.target.value)} disabled={loading || saving} spellCheck={false} className="mt-4 min-h-[55vh] w-full resize-y rounded-xl border bg-neutral-50 p-4 font-mono text-sm leading-6 outline-none dark:bg-neutral-900" placeholder={loading ? "Carregando..." : "Defina as instruções operacionais do agente..."} />
+    <FindableTextarea value={value} onChange={setValue} disabled={loading || saving} searchLabel="Buscar no AGENTS.md" highlightTestId="agent-instructions-highlight-layer" minHeightClass="min-h-[55vh]" placeholder={loading ? "Carregando..." : "Defina as instruções operacionais do agente..."} />
     <div className="mt-3 flex items-center justify-between"><span className="text-xs text-neutral-500">{value === savedValue ? "Sincronizado" : "Alterações não salvas"}</span><button onClick={() => void save()} disabled={loading || saving || !value.trim() || value === savedValue} className="flex items-center gap-2 rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950"><Save className="h-4 w-4" />{saving ? "Salvando..." : "Salvar override"}</button></div>
   </div>;
 }

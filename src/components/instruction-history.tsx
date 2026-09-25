@@ -4,24 +4,32 @@ import { type ReactNode, useState } from "react";
 import { Client } from "@langchain/langgraph-sdk";
 import { getRuntimeConnection } from "@/lib/runtime-connection";
 import { runRawCompiler } from "@/lib/raw-compiler";
+import {
+  loadAllAssistantVersions,
+  workflowRevisions,
+} from "@/lib/workflow-versions";
 
 type Revision = { version: number; created_at: string; content?: string };
 type Props = {
   assistantId?: string;
-  field?: "system_prompt" | "agent_instructions";
+  field?: "system_prompt" | "agent_instructions" | "workflows";
+  workflowId?: string;
   version?: number;
   disabled: boolean;
   onSelect: (content: string) => void;
   action?: ReactNode;
+  hideCurrentVersion?: boolean;
 };
 
 export function InstructionHistory({
   assistantId,
   field,
+  workflowId,
   version,
   disabled,
   onSelect,
   action,
+  hideCurrentVersion = false,
 }: Props) {
   const [versions, setVersions] = useState<Revision[]>([]);
   const [selected, setSelected] = useState<Revision | null>(null);
@@ -38,20 +46,33 @@ export function InstructionHistory({
       let records: Revision[];
       if (assistantId && field) {
         const client = new Client(getRuntimeConnection());
-        const history = await client.assistants.getVersions(assistantId, {
-          limit: 20,
-          offset,
-        });
-        records = history.map((item) => {
-          const content = (
-            item.context as Record<string, unknown> | undefined
-          )?.[field];
-          return {
-            version: item.version,
-            created_at: item.created_at,
-            content: typeof content === "string" ? content : undefined,
-          };
-        });
+        if (field === "workflows" && workflowId) {
+          records = workflowRevisions(
+            await loadAllAssistantVersions(client, assistantId),
+            workflowId,
+          )
+            .reverse()
+            .map(({ version, created_at, content }) => ({
+              version,
+              created_at,
+              content,
+            }));
+        } else {
+          const history = await client.assistants.getVersions(assistantId, {
+            limit: 20,
+            offset,
+          });
+          records = history.map((item) => {
+            const value = (
+              item.context as Record<string, unknown> | undefined
+            )?.[field];
+            return {
+              version: item.version,
+              created_at: item.created_at,
+              content: typeof value === "string" ? value : undefined,
+            };
+          });
+        }
       } else {
         const result = await runRawCompiler({
           operation: "get_agents_versions",
@@ -63,7 +84,7 @@ export function InstructionHistory({
         records = result.versions as Revision[];
       }
       setVersions((current) => (offset ? [...current, ...records] : records));
-      setMore(records.length === 20);
+      setMore(field !== "workflows" && records.length === 20);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Falha ao carregar histórico.",
@@ -79,10 +100,14 @@ export function InstructionHistory({
       className="mt-4 rounded-lg border p-3 text-sm"
     >
       <div className="flex items-center justify-between gap-2">
-        <span>
-          {version ? `Versão atual: ${version}` : "Histórico de versões"}
-        </span>
-        <div className="flex items-center gap-2">
+        {!hideCurrentVersion && (
+          <span>
+            {version ? `Versão atual: ${version}` : "Histórico de versões"}
+          </span>
+        )}
+        <div
+          className={`flex items-center gap-2 ${hideCurrentVersion ? "ml-auto" : ""}`}
+        >
           {action}
           <button
             type="button"
@@ -98,7 +123,9 @@ export function InstructionHistory({
         <div className="mt-3 space-y-3">
           <p className="text-xs text-neutral-500">
             {assistantId
-              ? "Versões do Assistant: cada salvamento preserva a configuração completa. "
+              ? field === "workflows"
+                ? "Versões deste arquivo de Workflow. "
+                : "Versões do Assistant: cada salvamento preserva a configuração completa. "
               : "Versões do RAW AGENTS.md. "}
             Carregue uma versão no editor e clique em Salvar para criar uma nova
             versão.
@@ -146,8 +173,9 @@ export function InstructionHistory({
             <div className="space-y-2">
               {selected.content === undefined ? (
                 <p>
-                  Esta versão utiliza as instruções padrão, sem conteúdo
-                  personalizado salvo.
+                  {field === "workflows"
+                    ? "Esta versão não contém este workflow."
+                    : "Esta versão utiliza as instruções padrão, sem conteúdo personalizado salvo."}
                 </p>
               ) : (
                 <>
