@@ -1,5 +1,9 @@
 # Agente Zerai
 
+Frontend 0.6.6 evita carregar o histórico ramificado completo no Playground,
+bloqueia novos envios durante indisponibilidade do Runtime e recarrega a mesma
+thread automaticamente após a reconexão.
+
 Frontend 0.6.5 preserves paragraph line breaks and treats single dollar signs as
 text, so Brazilian currency no longer starts a math formula. Existing messages
 benefit without rewriting stored history; double-dollar math remains supported.
