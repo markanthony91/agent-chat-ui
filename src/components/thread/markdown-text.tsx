@@ -114,7 +114,10 @@ const defaultComponents: any = {
   ),
   p: ({ className, ...props }: { className?: string }) => (
     <p
-      className={cn("mt-5 mb-5 leading-7 first:mt-0 last:mb-0", className)}
+      className={cn(
+        "mt-5 mb-5 leading-7 whitespace-pre-line first:mt-0 last:mb-0",
+        className,
+      )}
       {...props}
     />
   ),
@@ -247,7 +250,10 @@ const MarkdownTextImpl: FC<{ children: string }> = ({ children }) => {
   return (
     <div className="markdown-content">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
+        remarkPlugins={[
+          remarkGfm,
+          [remarkMath, { singleDollarTextMath: false }],
+        ]}
         rehypePlugins={[rehypeKatex]}
         components={defaultComponents}
       >

@@ -1,5 +1,12 @@
 # Agente Zerai
 
+Frontend 0.6.5 preserves paragraph line breaks and treats single dollar signs as
+text, so Brazilian currency no longer starts a math formula. Existing messages
+benefit without rewriting stored history; double-dollar math remains supported.
+Payment summary regression: `playwright test tests/e2e/payment-summary.spec.ts`
+against a local server on port 3048, or `SUMMARY_CHAT_URL` for a deployed frontend.
+The test mocks the backend and checks desktop/mobile layouts without business calls.
+
 Frontend 0.6.4 keeps Workflow history and in-document search on the same row on
 desktop. Mobile retains the existing stacked layout.
 
