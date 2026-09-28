@@ -119,6 +119,7 @@ export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
   const stream = useStreamContext();
   const messages = stream.messages;
   const isLoading = stream.isLoading;
+  const runtimeUnavailable = stream.runtimeStatus !== "connected";
 
   const lastError = useRef<string | undefined>(undefined);
 
@@ -131,7 +132,7 @@ export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
   };
 
   useEffect(() => {
-    if (!stream.error) {
+    if (!stream.error || runtimeUnavailable) {
       lastError.current = undefined;
       return;
     }
@@ -156,7 +157,7 @@ export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
     } catch {
       // no-op
     }
-  }, [stream.error]);
+  }, [runtimeUnavailable, stream.error]);
 
   // TODO: this should be part of the useStream hook
   const prevMessageLength = useRef(0);
@@ -174,7 +175,11 @@ export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if ((input.trim().length === 0 && contentBlocks.length === 0) || isLoading)
+    if (
+      (input.trim().length === 0 && contentBlocks.length === 0) ||
+      isLoading ||
+      runtimeUnavailable
+    )
       return;
     setFirstTokenReceived(false);
 
@@ -367,6 +372,15 @@ export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
             </div>
           )}
 
+          {runtimeUnavailable && (
+            <div
+              role="status"
+              className="mx-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+            >
+              Conexão interrompida. Reconectando sem iniciar outra conversa…
+            </div>
+          )}
+
           <StickToBottom className="relative flex-1 overflow-hidden">
             <StickyToBottomContent
               className={cn(
@@ -442,6 +456,7 @@ export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
                       />
                       <textarea
                         value={input}
+                        disabled={runtimeUnavailable}
                         onChange={(e) => setInput(e.target.value)}
                         onPaste={handlePaste}
                         onKeyDown={(e) => {
@@ -457,7 +472,11 @@ export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
                             form?.requestSubmit();
                           }
                         }}
-                        placeholder="Type your message..."
+                        placeholder={
+                          runtimeUnavailable
+                            ? "Aguardando reconexão…"
+                            : "Type your message..."
+                        }
                         className="field-sizing-content resize-none border-none bg-transparent p-3.5 pb-0 shadow-none ring-0 outline-none focus:ring-0 focus:outline-none"
                       />
 
@@ -509,6 +528,7 @@ export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
                             className="ml-auto shadow-md transition-all"
                             disabled={
                               isLoading ||
+                              runtimeUnavailable ||
                               (!input.trim() && contentBlocks.length === 0)
                             }
                           >
