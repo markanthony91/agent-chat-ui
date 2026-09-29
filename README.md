@@ -1,6 +1,6 @@
 # Agente Zerai
 
-Frontend 0.6.7 (local candidate) gives negotiation summaries a dedicated text
+Frontend 0.6.7 gives negotiation summaries a dedicated text
 layout: one field/installment per line, separated sections, wrapped dummy codes,
 and the existing simulation/email notices. Values remain verbatim from the runtime;
 no JSON is exposed to the customer and no financial calculation is added.
@@ -9,7 +9,7 @@ No runtime, WhatsApp, email, policy, or stored conversation changes are required
 Local validation: 10 mocked browser cases passed (1440px/390px, history and SSE),
 TypeScript and focused ESLint passed. Build passed with `npm run build -- --webpack`;
 Turbopack hit a local port-permission error. SSR verified exact amounts and HTML
-escaping; all 8 V8 ranges in the new component executed. Not pushed or deployed.
+escaping; all 8 V8 ranges in the new component executed. Published and validated: see docs/RELEASE_067_2026-09-29.md.
 
 
 Frontend 0.6.6 evita carregar o histórico ramificado completo no Playground,
