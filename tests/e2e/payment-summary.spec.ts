@@ -80,8 +80,13 @@ for (const width of [1440, 390]) {
     }) => {
       await page.setViewportSize({ width, height: 1000 });
       await page.route("**/*", (route) => {
-        const host = new URL(route.request().url()).hostname;
-        return ["127.0.0.1", "runtime.invalid"].includes(host)
+        const request = new URL(route.request().url());
+        const frontend = new URL(
+          process.env.SUMMARY_CHAT_URL || "http://127.0.0.1:3048/",
+        );
+        return (request.origin === frontend.origin &&
+          !request.pathname.startsWith("/api/")) ||
+          request.hostname === "runtime.invalid"
           ? route.continue()
           : route.abort();
       });
