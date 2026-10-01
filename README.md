@@ -1,5 +1,30 @@
 # Agent Chat UI
 
+## Playground separado por carteira
+
+Uma implantação adicional deste mesmo repositório com `PLAYGROUND_ONLY=true`
+exibe login por senha, seleção de carteira/agente e nova conversa. A implantação
+existente, sem essa variável, mantém o chat e as configurações atuais.
+
+Configure no serviço novo `PLAYGROUND_PASSWORD` (mínimo 20 caracteres),
+`PLAYGROUND_COOKIE_SECRET` (mínimo 32 caracteres), `CHANNEL_CONSOLE_URL`,
+`PLAYGROUND_API_TOKEN` (mesmo token de 64 caracteres hexadecimais do Console),
+`LANGGRAPH_API_URL` e, se necessário, `LANGSMITH_API_KEY`. Para a carteira
+legada com UUID ainda não gravado em Canais, configure
+`PLAYGROUND_LEGACY_ASSISTANT_ID`. A lista de carteiras vem do Console em tempo
+de execução; credenciais do Runtime e do Console ficam no servidor.
+
+`PLAYGROUND_CHAT_SCOPE_IDS=1` libera somente a carteira legada. Carteiras novas
+aparecem no seletor, mas o chat fica bloqueado até que o Runtime isole o
+simulador, as sessões e o OKF por carteira. Não amplie a lista apenas por
+configuração: primeiro valide o isolamento no Runtime. O passthrough LangGraph
+genérico fica indisponível nesse serviço. Cada nova conversa recebe um thread
+novo, vinculado à sessão autenticada e ao Assistant da carteira selecionada.
+
+Teste local: `pnpm install --frozen-lockfile`, `PLAYGROUND_ONLY=true pnpm build`
+e `pnpm start`. Use serviços simulados para testar login, catálogo, escopo e
+resposta sem executar negociação real.
+
 Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
 
 > [!NOTE]

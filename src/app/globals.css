@@ -149,3 +149,136 @@
     box-shadow: inset 9px 0 6px -1px rgb(0 0 0 / 0.02);
   }
 }
+
+.portfolio-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: #f4f6fa;
+  color: #12223c;
+}
+.portfolio-login form {
+  width: min(100%, 420px);
+  display: grid;
+  gap: 1rem;
+  padding: 2rem;
+  border: 1px solid #d5dce7;
+  border-radius: 16px;
+  background: white;
+}
+.portfolio-login h1,
+.portfolio-playground h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.portfolio-login input,
+.portfolio-toolbar select,
+.portfolio-conversation textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #aab6c8;
+  border-radius: 8px;
+  background: white;
+  color: #12223c;
+}
+.portfolio-login button,
+.portfolio-playground button {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  background: #0b5c50;
+  color: white;
+  cursor: pointer;
+}
+.portfolio-playground button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.portfolio-playground {
+  min-height: 100vh;
+  padding: 1.5rem;
+  background: #f4f6fa;
+  color: #12223c;
+}
+.portfolio-playground > header,
+.portfolio-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  max-width: 1100px;
+  margin: 0 auto 1rem;
+}
+.portfolio-playground > header {
+  justify-content: space-between;
+}
+.portfolio-toolbar {
+  padding: 1rem;
+  border: 1px solid #d5dce7;
+  border-radius: 12px;
+  background: white;
+}
+.portfolio-toolbar select {
+  width: min(100%, 320px);
+}
+.portfolio-toolbar p {
+  flex: 1;
+}
+.portfolio-toolbar small {
+  color: #52627b;
+}
+.portfolio-conversation {
+  display: flex;
+  flex-direction: column;
+  max-width: 1100px;
+  min-height: 60vh;
+  margin: auto;
+  border: 1px solid #d5dce7;
+  border-radius: 12px;
+  background: white;
+}
+.portfolio-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+.portfolio-messages p {
+  max-width: min(85%, 720px);
+  padding: 0.9rem;
+  border-radius: 12px;
+  white-space: pre-wrap;
+}
+.portfolio-messages strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+.portfolio-messages .from-human {
+  align-self: flex-end;
+  background: #dff2ec;
+}
+.portfolio-messages .from-agent {
+  align-self: flex-start;
+  background: #edf1f7;
+}
+.portfolio-conversation form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid #d5dce7;
+}
+.portfolio-conversation form label {
+  width: 100%;
+}
+.portfolio-conversation textarea {
+  flex: 1;
+  min-width: 240px;
+  min-height: 70px;
+}
+.portfolio-error,
+.portfolio-login [role="alert"] {
+  color: #a21d1d;
+}
