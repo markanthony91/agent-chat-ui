@@ -3,27 +3,31 @@
 ## Playground separado por carteira
 
 Uma implantação adicional deste mesmo repositório com `PLAYGROUND_ONLY=true`
-exibe login por senha, seleção de carteira/agente e nova conversa. A implantação
-existente, sem essa variável, mantém o chat e as configurações atuais.
+exibe login por senha e seleção de carteira. Depois da seleção, reutiliza o
+Agent Chat UI original, com streaming, histórico, cards de tools e upload. A
+implantação existente, sem essa variável, mantém o chat atual.
 
 Configure no serviço novo `PLAYGROUND_PASSWORD` (mínimo 20 caracteres),
 `PLAYGROUND_COOKIE_SECRET` (mínimo 32 caracteres), `CHANNEL_CONSOLE_URL`,
 `PLAYGROUND_API_TOKEN` (mesmo token de 64 caracteres hexadecimais do Console),
-`LANGGRAPH_API_URL` e, se necessário, `LANGSMITH_API_KEY`. Para a carteira
-legada com UUID ainda não gravado em Canais, configure
-`PLAYGROUND_LEGACY_ASSISTANT_ID`. A lista de carteiras vem do Console em tempo
-de execução; credenciais do Runtime e do Console ficam no servidor.
+`LANGGRAPH_API_URL`. Para a carteira legada com UUID ainda não gravado em
+Canais, configure `PLAYGROUND_LEGACY_ASSISTANT_ID` com um Assistant exclusivo
+do Playground, criado a partir da configuração da carteira. A lista de
+carteiras e seus Assistant IDs vêm do Console em tempo de execução. O token
+do Console e a senha ficam no servidor; o navegador acessa o Runtime pela URL
+configurada, como no Agent Chat UI original.
 
-`PLAYGROUND_CHAT_SCOPE_IDS=1` libera somente a carteira legada. Carteiras novas
-aparecem no seletor, mas o chat fica bloqueado até que o Runtime isole o
-simulador, as sessões e o OKF por carteira. Não amplie a lista apenas por
-configuração: primeiro valide o isolamento no Runtime. O passthrough LangGraph
-genérico fica indisponível nesse serviço. Cada nova conversa recebe um thread
-novo, vinculado à sessão autenticada e ao Assistant da carteira selecionada.
+`PLAYGROUND_CHAT_SCOPE_IDS=1,2` libera o chat das carteiras com Assistant
+configurado. O histórico é consultado pelo Assistant selecionado e a troca de
+carteira limpa o thread aberto. O passthrough LangGraph genérico e a rota de
+chat simplificada ficam indisponíveis nesse serviço. A senha protege o acesso
+à interface; ela não é uma autorização no Runtime. Antes de testar ações
+financeiras em outra carteira, vincule os dados, o OKF e as tools dessa
+carteira no Runtime.
 
 Teste local: `pnpm install --frozen-lockfile`, `PLAYGROUND_ONLY=true pnpm build`
 e `pnpm start`. Use serviços simulados para testar login, catálogo, escopo e
-resposta sem executar negociação real.
+interface sem executar negociação real.
 
 Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
 

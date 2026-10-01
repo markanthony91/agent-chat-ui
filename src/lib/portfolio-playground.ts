@@ -117,33 +117,3 @@ export function assistantFor(portfolio: Portfolio) {
     throw new Error("portfolio_assistant_not_ready");
   return assistant;
 }
-
-export function signThread(
-  threadId: string,
-  scopeId: number,
-  assistantId: string,
-  sessionId: string,
-) {
-  const payload = `${threadId}.${scopeId}.${assistantId}.${sessionId}`;
-  return `${threadId}.${signature(payload)}`;
-}
-
-export function verifyThread(
-  token: unknown,
-  scopeId: number,
-  assistantId: string,
-  sessionId: string,
-) {
-  if (typeof token !== "string") throw new Error("invalid_thread");
-  const [threadId, mac] = token.split(".");
-  if (
-    !/^[a-f0-9-]{36}$/i.test(threadId || "") ||
-    !/^[a-f0-9]{64}$/.test(mac || "")
-  )
-    throw new Error("invalid_thread");
-  if (
-    !equal(mac, signature(`${threadId}.${scopeId}.${assistantId}.${sessionId}`))
-  )
-    throw new Error("invalid_thread");
-  return threadId;
-}

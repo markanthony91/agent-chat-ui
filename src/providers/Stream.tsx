@@ -140,9 +140,10 @@ const DEFAULT_API_URL = "http://localhost:2024";
 const DEFAULT_ASSISTANT_ID = "agent";
 const AGENT_BUILDER_AUTH_SCHEME = "langsmith-api-key";
 
-export const StreamProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const StreamProvider: React.FC<{
+  children: ReactNode;
+  fixedConfig?: { apiUrl: string; assistantId: string };
+}> = ({ children, fixedConfig }) => {
   // Get environment variables
   const envApiUrl: string | undefined = process.env.NEXT_PUBLIC_API_URL;
   const envAssistantId: string | undefined =
@@ -177,8 +178,9 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   // Determine final values to use, prioritizing URL params then env vars
-  const finalApiUrl = apiUrl || envApiUrl;
-  const finalAssistantId = assistantId || envAssistantId;
+  const finalApiUrl = fixedConfig?.apiUrl || apiUrl || envApiUrl;
+  const finalAssistantId =
+    fixedConfig?.assistantId || assistantId || envAssistantId;
   const finalAuthScheme = authScheme || envAuthScheme || "";
 
   // Show the form if we: don't have an API URL, or don't have an assistant ID
@@ -304,10 +306,10 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <StreamSession
-      apiKey={apiKey}
+      apiKey={fixedConfig ? null : apiKey}
       apiUrl={finalApiUrl}
       assistantId={finalAssistantId}
-      authScheme={finalAuthScheme || undefined}
+      authScheme={fixedConfig ? undefined : finalAuthScheme || undefined}
     >
       {children}
     </StreamSession>

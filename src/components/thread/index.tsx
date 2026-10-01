@@ -111,7 +111,7 @@ function OpenGitHubRepo() {
   );
 }
 
-export function Thread() {
+export function Thread({ embedded = false }: { embedded?: boolean } = {}) {
   const [artifactContext, setArtifactContext] = useArtifactContext();
   const [artifactOpen, closeArtifact] = useArtifactOpen();
 
@@ -256,7 +256,12 @@ export function Thread() {
   );
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div
+      className={cn(
+        "flex w-full overflow-hidden",
+        embedded ? "h-full" : "h-screen",
+      )}
+    >
       <div className="relative hidden lg:flex">
         <motion.div
           className="absolute z-20 h-full overflow-hidden border-r bg-white"

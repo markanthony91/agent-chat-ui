@@ -1,12 +1,19 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
+import { chromium } from "@playwright/test";
 
 const token = "a".repeat(64);
 const assistantId = "00000000-0000-4000-8000-000000000001";
-const threadId = "00000000-0000-4000-8000-000000000010";
+const usedigiAssistantId = "00000000-0000-4000-8000-000000000002";
+const searches = [];
 const send = (res, status, body) => {
-  res.writeHead(status, { "Content-Type": "application/json" });
+  res.writeHead(status, {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Api-Key",
+  });
   res.end(JSON.stringify(body));
 };
 const wallet = createServer((req, res) => {
@@ -28,22 +35,20 @@ const wallet = createServer((req, res) => {
         scope_id: 2,
         tenant_name: "Usedig",
         portfolio_name: "Demo",
-        assistant_name: "Sophia",
-        runtime_assistant_id: "00000000-0000-4000-8000-000000000002",
+        assistant_name: "Larissa",
+        runtime_assistant_id: usedigiAssistantId,
       },
     ],
   });
 });
 const runtime = createServer(async (req, res) => {
-  if (req.url === "/threads") return send(res, 200, { thread_id: threadId });
-  if (req.url === `/threads/${threadId}/runs/wait`) {
+  if (req.method === "OPTIONS") return send(res, 204, {});
+  if (req.url === "/info") return send(res, 200, {});
+  if (req.url === "/threads/search") {
     let raw = "";
     for await (const part of req) raw += part;
-    if (JSON.parse(raw).assistant_id !== assistantId)
-      return send(res, 403, { error: "scope" });
-    return send(res, 200, {
-      messages: [{ type: "ai", content: "Resposta simulada de teste." }],
-    });
+    searches.push(JSON.parse(raw).metadata);
+    return send(res, 200, []);
   }
   send(res, 404, { error: "missing" });
 });
@@ -65,6 +70,7 @@ const app = spawn(
       CHANNEL_CONSOLE_URL: `http://127.0.0.1:${wallet.address().port}`,
       LANGGRAPH_API_URL: `http://127.0.0.1:${runtime.address().port}`,
       PLAYGROUND_LEGACY_ASSISTANT_ID: assistantId,
+      PLAYGROUND_CHAT_SCOPE_IDS: "1,2",
       RAILWAY_PUBLIC_DOMAIN: "playground.example.test",
     },
   },
@@ -118,20 +124,12 @@ try {
   const portfolios = (await list.json()).portfolios;
   assert.equal(portfolios.length, 2);
   assert.equal(portfolios[0].chat_ready, true);
-  assert.equal(portfolios[1].chat_ready, false);
-  const chat = (scope_id, message, thread_token = null) =>
-    fetch(`${base}/api/portfolio/chat`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ scope_id, message, thread_token }),
-    });
-  assert.equal((await chat(2, "Tenho dívida?")).status, 409);
-  const first = await chat(1, "Olá");
-  assert.equal(first.status, 200);
-  const answer = await first.json();
-  assert.equal(answer.reply, "Resposta simulada de teste.");
-  assert.equal((await chat(1, "Tudo bem?", answer.thread_token)).status, 200);
-  assert.equal((await chat(1, "Olá", answer.thread_token + "x")).status, 400);
+  assert.equal(portfolios[1].chat_ready, true);
+  assert.equal(
+    (await fetch(`${base}/api/portfolio/chat`, { method: "POST", headers }))
+      .status,
+    404,
+  );
   assert.equal(
     (
       await fetch(`${base}/api/assistants/search`, {
@@ -142,6 +140,32 @@ try {
     ).status,
     404,
   );
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext();
+    const [name, value] = cookie.split("=");
+    await context.addCookies([{ name, value, url: base }]);
+    const page = await context.newPage();
+    await page.goto(base);
+    await page.getByLabel("Carteira").selectOption("1");
+    await page.getByPlaceholder("Type your message...").waitFor();
+    await page.getByText("Hide Tool Calls").waitFor();
+    await page.waitForFunction(() =>
+      document.body.textContent.includes("Thread History"),
+    );
+    await page.getByLabel("Carteira").selectOption("2");
+    await page.getByPlaceholder("Type your message...").waitFor();
+    await page.getByText("Larissa").waitFor();
+    await page.waitForTimeout(200);
+    assert.ok(
+      searches.some((metadata) => metadata.assistant_id === assistantId),
+    );
+    assert.ok(
+      searches.some((metadata) => metadata.assistant_id === usedigiAssistantId),
+    );
+  } finally {
+    await browser.close();
+  }
   console.log("portfolio playground smoke passed");
 } finally {
   app.kill("SIGTERM");

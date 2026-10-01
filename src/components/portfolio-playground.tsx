@@ -1,6 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useQueryState } from "nuqs";
+import { LegacyChatPage } from "@/components/legacy-chat-page";
+import { LangGraphLogoSVG } from "@/components/icons/langgraph";
 
 type Portfolio = {
   scope_id: number;
@@ -10,17 +13,18 @@ type Portfolio = {
   assistant_id: string | null;
   chat_ready: boolean;
 };
-type Message = { role: "human" | "ai"; content: string };
-
-export function PortfolioPlayground({ signedIn }: { signedIn: boolean }) {
+export function PortfolioPlayground({
+  signedIn,
+  runtimeUrl,
+}: {
+  signedIn: boolean;
+  runtimeUrl: string;
+}) {
   const [password, setPassword] = useState("");
   const [loggedIn, setLoggedIn] = useState(signedIn);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [scopeId, setScopeId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [threadToken, setThreadToken] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [, setThreadId] = useQueryState("threadId");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -49,48 +53,10 @@ export function PortfolioPlayground({ signedIn }: { signedIn: boolean }) {
     setLoggedIn(true);
   }
 
-  function selectPortfolio(value: number) {
+  async function selectPortfolio(value: number) {
+    await setThreadId(null);
     setScopeId(value);
-    setThreadToken(null);
-    setMessages([]);
     setError("");
-  }
-
-  async function send(event: FormEvent) {
-    event.preventDefault();
-    if (!scopeId || !draft.trim() || busy) return;
-    const message = draft.trim();
-    setDraft("");
-    setMessages((current) => [...current, { role: "human", content: message }]);
-    setBusy(true);
-    setError("");
-    try {
-      const response = await fetch("/api/portfolio/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scope_id: scopeId,
-          thread_token: threadToken,
-          message,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Falha na resposta do agente.");
-      setThreadToken(data.thread_token);
-      setMessages((current) => [
-        ...current,
-        { role: "ai", content: data.reply },
-      ]);
-    } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Falha na resposta do agente.",
-      );
-    } finally {
-      setBusy(false);
-    }
   }
 
   if (!loggedIn)
@@ -116,31 +82,26 @@ export function PortfolioPlayground({ signedIn }: { signedIn: boolean }) {
 
   const selected = portfolios.find((item) => item.scope_id === scopeId);
   return (
-    <main className="portfolio-playground">
-      <header>
-        <div>
-          <h1>Playground de carteiras</h1>
-          <p>Teste interno dos agentes</p>
+    <main className="flex h-dvh flex-col overflow-hidden bg-white">
+      <header className="flex flex-wrap items-center gap-3 border-b px-4 py-2">
+        <LangGraphLogoSVG className="size-8 shrink-0" />
+        <div className="mr-auto">
+          <h1 className="text-lg font-semibold">Agent Chat</h1>
+          <p className="text-muted-foreground text-xs">
+            Playground de carteiras
+          </p>
         </div>
-        <button
-          type="button"
-          onClick={async () => {
-            await fetch("/api/portfolio/auth", { method: "DELETE" });
-            setLoggedIn(false);
-            setMessages([]);
-            setScopeId(null);
-            setThreadToken(null);
-          }}
+        <label
+          htmlFor="portfolio"
+          className="text-sm font-medium"
         >
-          Sair
-        </button>
-      </header>
-      <section className="portfolio-toolbar">
-        <label htmlFor="portfolio">Carteira</label>
+          Carteira
+        </label>
         <select
           id="portfolio"
+          className="max-w-[300px] min-w-[180px] rounded-md border bg-white px-3 py-2 text-sm"
           value={scopeId ?? ""}
-          onChange={(event) => selectPortfolio(Number(event.target.value))}
+          onChange={(event) => void selectPortfolio(Number(event.target.value))}
         >
           <option
             value=""
@@ -157,77 +118,53 @@ export function PortfolioPlayground({ signedIn }: { signedIn: boolean }) {
             </option>
           ))}
         </select>
-        {selected && (
-          <p>
-            Agente: <strong>{selected.assistant_name}</strong>
-            {selected.assistant_id && <small> · {selected.assistant_id}</small>}
-          </p>
-        )}
         <button
           type="button"
-          disabled={!selected || busy}
-          onClick={() => {
-            setThreadToken(null);
-            setMessages([]);
-            setError("");
+          className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+          onClick={async () => {
+            await fetch("/api/portfolio/auth", { method: "DELETE" });
+            await setThreadId(null);
+            setLoggedIn(false);
+            setScopeId(null);
           }}
         >
-          Nova conversa
+          Sair
         </button>
-      </section>
-      {!selected ? (
-        <p>Selecione uma carteira para iniciar.</p>
-      ) : !selected.chat_ready ? (
-        <p role="status">
-          Esta carteira já pode ser configurada, mas o chat aguarda isolamento
-          de dados no Runtime.
-        </p>
-      ) : (
-        <section
-          className="portfolio-conversation"
-          aria-label="Conversa"
-        >
-          <div
-            className="portfolio-messages"
-            aria-live="polite"
-          >
-            {messages.map((message, index) => (
-              <p
-                key={index}
-                className={
-                  message.role === "human" ? "from-human" : "from-agent"
-                }
-              >
-                <strong>
-                  {message.role === "human" ? "Você" : selected.assistant_name}
-                </strong>
-                <span>{message.content}</span>
-              </p>
-            ))}
-            {busy && <p role="status">Agente respondendo…</p>}
-          </div>
-          <form onSubmit={send}>
-            <label htmlFor="message">Mensagem</label>
-            <textarea
-              id="message"
-              value={draft}
-              maxLength={4000}
-              disabled={busy}
-              onChange={(event) => setDraft(event.target.value)}
-            />
-            <button
-              type="submit"
-              disabled={!draft.trim() || busy}
-            >
-              Enviar
-            </button>
-          </form>
-        </section>
+      </header>
+      {selected && (
+        <div className="text-muted-foreground border-b px-4 py-2 text-xs">
+          Agente:{" "}
+          <strong className="text-foreground">{selected.assistant_name}</strong>
+          {selected.assistant_id && <span> · {selected.assistant_id}</span>}
+        </div>
       )}
+      <section className="min-h-0 flex-1">
+        {!selected ? (
+          <p className="text-muted-foreground p-8 text-center">
+            Selecione uma carteira para iniciar.
+          </p>
+        ) : !selected.chat_ready || !selected.assistant_id || !runtimeUrl ? (
+          <p
+            role="status"
+            className="text-muted-foreground p-8 text-center"
+          >
+            O agente desta carteira ainda não está disponível para teste.
+          </p>
+        ) : (
+          <LegacyChatPage
+            key={selected.scope_id}
+            embedded
+            fixedConfig={{
+              apiUrl: runtimeUrl,
+              assistantId: selected.assistant_id,
+            }}
+          />
+        )}
+      </section>
       {error && (
         <p
           role="alert"
-          className="portfolio-error"
+          className="px-4 py-2 text-red-700"
         >
           {error}
         </p>
