@@ -1,25 +1,10 @@
-"use client";
+import { LegacyChatPage } from "@/components/legacy-chat-page";
+import { PortfolioPlayground } from "@/components/portfolio-playground";
+import { configured, sessionValid } from "@/lib/portfolio-playground";
 
-import { Thread } from "@/components/thread";
-import { StreamProvider } from "@/providers/Stream";
-import { ThreadProvider } from "@/providers/Thread";
-import { ArtifactProvider } from "@/components/thread/artifact";
-import { Toaster } from "@/components/ui/sonner";
-import { AgentSettingsPanel } from "@/components/agent-settings-panel";
-import React from "react";
+export const dynamic = "force-dynamic";
 
-export default function DemoPage(): React.ReactNode {
-  return (
-    <React.Suspense fallback={<div>Loading (layout)...</div>}>
-      <Toaster />
-      <AgentSettingsPanel />
-      <ThreadProvider>
-        <StreamProvider>
-          <ArtifactProvider>
-            <Thread />
-          </ArtifactProvider>
-        </StreamProvider>
-      </ThreadProvider>
-    </React.Suspense>
-  );
+export default async function Page() {
+  if (!configured()) return <LegacyChatPage />;
+  return <PortfolioPlayground signedIn={await sessionValid()} />;
 }
