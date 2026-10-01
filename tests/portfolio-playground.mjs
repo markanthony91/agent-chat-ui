@@ -65,6 +65,7 @@ const app = spawn(
       CHANNEL_CONSOLE_URL: `http://127.0.0.1:${wallet.address().port}`,
       LANGGRAPH_API_URL: `http://127.0.0.1:${runtime.address().port}`,
       PLAYGROUND_LEGACY_ASSISTANT_ID: assistantId,
+      RAILWAY_PUBLIC_DOMAIN: "playground.example.test",
     },
   },
 );
@@ -88,8 +89,18 @@ try {
       }
     });
   });
-  const origin = { Origin: base };
+  const origin = { Origin: "https://playground.example.test" };
   assert.equal((await fetch(`${base}/api/portfolio/list`)).status, 401);
+  assert.equal(
+    (
+      await fetch(`${base}/api/portfolio/auth`, {
+        method: "POST",
+        headers: { Origin: base, "Content-Type": "application/json" },
+        body: JSON.stringify({ password: "synthetic-playground-password" }),
+      })
+    ).status,
+    403,
+  );
   const login = await fetch(`${base}/api/portfolio/auth`, {
     method: "POST",
     headers: { ...origin, "Content-Type": "application/json" },

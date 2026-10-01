@@ -23,6 +23,11 @@ export function configured() {
   return process.env.PLAYGROUND_ONLY === "true";
 }
 
+export function allowedOrigin(origin: string | null, fallback: string) {
+  const publicDomain = process.env.RAILWAY_PUBLIC_DOMAIN;
+  return origin === (publicDomain ? `https://${publicDomain}` : fallback);
+}
+
 export function checkPassword(candidate: unknown) {
   const expected = process.env.PLAYGROUND_PASSWORD || "";
   return (
