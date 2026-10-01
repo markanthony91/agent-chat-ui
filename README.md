@@ -5,7 +5,8 @@
 Uma implantação adicional deste mesmo repositório com `PLAYGROUND_ONLY=true`
 exibe login por senha e seleção de carteira. Depois da seleção, reutiliza o
 Agent Chat UI original, com streaming, histórico, cards de tools e upload. A
-implantação existente, sem essa variável, mantém o chat atual.
+implantação existente, sem essa variável, mantém o chat atual. O Playground
+oculta o link do GitHub presente no chat original.
 
 Configure no serviço novo `PLAYGROUND_PASSWORD` (mínimo 20 caracteres),
 `PLAYGROUND_COOKIE_SECRET` (mínimo 32 caracteres), `CHANNEL_CONSOLE_URL`,

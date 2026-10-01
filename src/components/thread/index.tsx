@@ -330,9 +330,11 @@ export function Thread({ embedded = false }: { embedded?: boolean } = {}) {
                   </Button>
                 )}
               </div>
-              <div className="absolute top-2 right-4 flex items-center">
-                <OpenGitHubRepo />
-              </div>
+              {!embedded && (
+                <div className="absolute top-2 right-4 flex items-center">
+                  <OpenGitHubRepo />
+                </div>
+              )}
             </div>
           )}
           {chatStarted && (
@@ -376,9 +378,11 @@ export function Thread({ embedded = false }: { embedded?: boolean } = {}) {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="flex items-center">
-                  <OpenGitHubRepo />
-                </div>
+                {!embedded && (
+                  <div className="flex items-center">
+                    <OpenGitHubRepo />
+                  </div>
+                )}
                 <TooltipIconButton
                   size="lg"
                   className="p-4"
