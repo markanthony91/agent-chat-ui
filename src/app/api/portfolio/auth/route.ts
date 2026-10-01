@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { json } from "@/lib/portfolio-response";
 import {
+  allowedOrigin,
   checkPassword,
   configured,
   issueSession,
@@ -13,7 +14,7 @@ let windowEnd = 0;
 
 export async function POST(request: NextRequest) {
   if (!configured()) return json({ error: "not_found" }, 404);
-  if (request.headers.get("origin") !== request.nextUrl.origin)
+  if (!allowedOrigin(request.headers.get("origin"), request.nextUrl.origin))
     return json({ error: "origin_denied" }, 403);
   if (Date.now() > windowEnd) {
     attempts = 0;
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  if (request.headers.get("origin") !== request.nextUrl.origin)
+  if (!allowedOrigin(request.headers.get("origin"), request.nextUrl.origin))
     return json({ error: "origin_denied" }, 403);
   const response = json({ ok: true });
   response.cookies.set({ ...sessionCookie(), value: "", maxAge: 0 });

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { json } from "@/lib/portfolio-response";
 import {
+  allowedOrigin,
   assistantFor,
   portfolios,
   sessionIdentity,
@@ -31,7 +32,7 @@ async function runtime(path: string, body: unknown) {
 export async function POST(request: NextRequest) {
   const sessionId = await sessionIdentity();
   if (!sessionId) return json({ error: "unauthorized" }, 401);
-  if (request.headers.get("origin") !== request.nextUrl.origin)
+  if (!allowedOrigin(request.headers.get("origin"), request.nextUrl.origin))
     return json({ error: "origin_denied" }, 403);
   let input;
   try {
