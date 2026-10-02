@@ -1,4 +1,71 @@
-# Agent Chat UI
+# Agente Zerai
+
+Frontend 0.6.8 restores the Dataset browser, agent settings, workflow editing,
+chat formatting and reconnect behavior from the previous Chat UI branch while
+keeping the isolated portfolio Playground. The legacy chat remains the default
+when `PLAYGROUND_ONLY` is not enabled.
+
+Frontend 0.6.7 gives negotiation summaries a dedicated text
+layout: one field/installment per line, separated sections, wrapped dummy codes,
+and the existing simulation/email notices. Values remain verbatim from the runtime;
+no JSON is exposed to the customer and no financial calculation is added.
+Current and historical summaries use this layout instead of Markdown/math parsing.
+No runtime, WhatsApp, email, policy, or stored conversation changes are required.
+Local validation: 10 mocked browser cases passed (1440px/390px, history and SSE),
+TypeScript and focused ESLint passed. Build passed with `npm run build -- --webpack`;
+Turbopack hit a local port-permission error. SSR verified exact amounts and HTML
+escaping; all 8 V8 ranges in the new component executed. Published and validated: see docs/RELEASE_067_2026-09-29.md.
+
+Frontend 0.6.6 evita carregar o histórico ramificado completo no Playground,
+bloqueia novos envios durante indisponibilidade do Runtime e recarrega a mesma
+thread automaticamente após a reconexão.
+
+Frontend 0.6.5 preserves paragraph line breaks and treats single dollar signs as
+text, so Brazilian currency no longer starts a math formula. Existing messages
+benefit without rewriting stored history; double-dollar math remains supported.
+Payment summary regression: `playwright test tests/e2e/payment-summary.spec.ts`
+against a local server on port 3048, or `SUMMARY_CHAT_URL` for a deployed frontend.
+The test mocks the backend and checks desktop/mobile layouts without business calls.
+
+Frontend 0.6.4 keeps Workflow history and in-document search on the same row on
+desktop. Mobile retains the existing stacked layout.
+
+Frontend 0.1.9 improves Dataset navigation with document titles, declared type
+badges, type filters/counts and matching excerpts. Search covers the complete
+published document (including YAML metadata), title and path, ignoring case and
+accents. Requires backend 0.2.6 `catalog`; requests debounce by 300 ms, ignore stale
+responses and pin the browsed snapshot. No embeddings, no source edits and no
+invented approval indicators. Published documents remain read-only.
+
+Frontend 0.1.8 resolves the operator-managed default assistant for both chat and
+settings (`metadata.zerai_default=true`). Explicit assistant UUIDs remain exact.
+System Prompt, AGENTS and workflows save to that same persistent assistant, read
+the latest context before updating, and confirm the read-back before showing saved.
+Editing system-created assistants is rejected: LangGraph dev recreates them at
+startup. Provision one regular assistant per graph before enabling edits.
+This retains the existing single-replica volume/flush limitations; it is not a
+transactional database replacement or a guarantee against abrupt host failure.
+
+Frontend 0.1.7: Dataset now has a real nested folder browser. The filter lives
+inside the file panel, matches names/paths ignoring case and accents, opens matching
+branches and shows result counts. Folders open independently, directories sort
+before files, and root documents appear directly. Preview still reads the exact
+published path; no storage migration, content search or new dependency is involved.
+
+Frontend 0.1.6 names the knowledge tab and section **Dataset**. Internal paths,
+API operations and stored documents are unchanged.
+
+Frontend 0.1.5 adds Settings > Simulator > Validação de identidade: full/first-four/
+last-four CPF, full name/birth date/both, and attempt limit. The server validates
+and pins this policy to each new conversation; existing conversations keep theirs.
+The panel uses native inputs and the existing fixture endpoint (backend 0.2.4).
+
+Frontend 0.1.4 adds read-only tool usage details under Settings > Tools:
+actual model-facing descriptions and public JSON input schemas from runtime 0.2.3.
+Older backends show unavailable fields explicitly; no tool execution is triggered.
+
+Frontend 0.1.3 displays Agente Zerai in the chat, connection screen and browser
+title. Built on Agent Chat UI; repository identifiers and runtime are unchanged.
 
 ## Playground separado por carteira
 
@@ -26,6 +93,25 @@ e `pnpm start`. Use serviços simulados para testar login, catálogo, escopo e
 resposta sem executar negociação real.
 
 Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
+
+## This fork: runtime audit corrections (0.1.1)
+
+Final messages can display the backend's post-stream numeric diagnostic.
+It explicitly distinguishes review required, no numeric mismatch detected and
+not evaluated. This does not approve semantic fidelity or protect text already
+streamed. No token buffering/rewrite, no duplicated assistant message, no changes
+to the WhatsApp or Lovable applications. This candidate still requires publication.
+
+See [Runtime integration and validation](docs/RUNTIME_AUDIT.md) for the shared
+backend connection, per-conversation synthetic identity, decimal-safe simulator,
+offer confirmation, streaming and cancellation behavior. Companion backend:
+`simple-agent-template` 0.2.0. Existing WhatsApp and Lovable apps are unchanged.
+The Simulator exposes the existing dummy `phone` field beside CPF for new
+Playground conversations; it does not configure WhatsApp.
+
+Checks: `pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test:e2e`.
+Browser tests require the local synthetic backend described in that report.
+This branch is not proof of a Railway release or real-Qwen validation.
 
 > [!NOTE]
 > 🎥 Watch the video setup guide [here](https://youtu.be/lInrwVnZ83o).
@@ -277,3 +363,93 @@ const streamValue = useTypedStream({
   },
 });
 ```
+
+# Direct pilot link
+
+[Published chat](https://agent-chat-ui-fork-production.up.railway.app/) — 0.1.1,
+validated with real Qwen on 2026-09-15. Optional `tests/e2e/published.spec.ts`
+requires PUBLISHED_CHAT_URL, PUBLISHED_RUNTIME_URL and PUBLISHED_EXPECTED_MODEL;
+without them it skips live calls. It sends two read-only synthetic turns.
+
+Set `NEXT_PUBLIC_API_URL` to the intended LangGraph runtime and
+`NEXT_PUBLIC_ASSISTANT_ID=agent` **before building**. A clean browser then opens
+the chat directly without connection setup or provider credentials. Share the
+site root, without `threadId`, so the visitor starts a new conversation.
+The backend pins each connection model; the LLM tab selects only server-configured connections.
+Existing explicit runtime query parameters still work for operator diagnostics.
+This does not create a restricted guest account: the existing anonymous lab
+exposes operator controls/history. Share only with authorized testers and use
+synthetic data. Never put an LLM key in a URL or a `NEXT_PUBLIC_` variable.
+
+# Header settings — 0.1.2
+
+The header gear replaces the GitHub link in both empty and active chats. It opens
+the existing settings panel; there is no second floating trigger. Backend, model,
+credentials and conversation behavior are unchanged.
+
+## Instruction history and save feedback (0.2.0)
+
+System Prompt and Agent Instructions show the current Assistant version and a
+paginated **Ver histórico** list with timestamp and content preview. Every save
+uses native LangGraph versioning and verifies both the active content and the
+new history entry before showing **Salvo com sucesso**. Versions are Assistant
+snapshots, so edits to other settings can also advance the version number.
+Loading an older field into the editor does not apply it: click Save to create a
+new version while preserving the other current settings.
+
+The System Prompt header also accepts a local `.md` file. Loading a file replaces
+only the editor contents; the operator must review it and click **Salvar** before
+the runtime creates and activates a new Assistant version.
+
+Agent Instructions accepts a local `AGENTS.md` the same way. The file stays as
+an unsaved editor change until the operator clicks **Salvar override**.
+
+RAW Compiler > AGENTS.md has equivalent history backed by the runtime volume,
+including the previous content on the first save (requires backend 0.2.7).
+Workflow and Simulator Save buttons also show a success toast. Failed writes
+keep the error and unsaved editor content; they do not report success.
+The Workflow editor includes in-content search with occurrence navigation and a
+full-screen mode that can also be closed with `Esc`. Markdown upload persists a
+workflow under the exact filename, version badges use the document's declared
+`Versão:` value (falling back to `vN` in the filename), and every search match is
+highlighted while `Enter` advances to the next occurrence.
+Focus remains in the search field, so repeated `Enter` presses never edit the
+workflow text. The editor scrolls to keep the active occurrence visible.
+System Prompt and Agent Instructions provide the same highlighted find behavior,
+including `Shift+Enter` for the previous occurrence.
+The Workflow toolbar groups **Novo** and **Carregar .md**; workflow history stays
+available without showing the unrelated full-Assistant version number.
+Each Workflow file has an independent revision number. Its sidebar badge advances
+only when that file changes, and its history omits unrelated Assistant saves.
+
+Validation and rollout: [instruction versioning](docs/INSTRUCTION_VERSIONS.md).
+
+## LLM and agent profile settings (0.3.0)
+
+The settings menu now includes **LLM** and **Perfil do agente** (backend 0.3.0
+required). LLM shows the server-selected model and lets operators set temperature,
+top-p and the output token limit. Blank values use server/provider defaults;
+unknown provider defaults are labelled explicitly instead of displaying a guessed
+number. The same tab selects primary/fallback connections registered on the server
+(default, Lovable Gemini/GPT, or another OpenAI-compatible endpoint). It displays
+the sanitized endpoint, model, read timeout, proxy status and whether credentials
+are configured. Credential values never enter the browser or Assistant history.
+Unconfigured connections are disabled; configured does not mean live-tested.
+
+The profile contains the agent's presentation name, role and tone. Nonempty
+fields are incorporated into the model instructions; blank fields preserve the
+prompts. The presentation name is separate from the technical Assistant ID.
+Use a new conversation to compare settings without previous messages influencing
+the model. Profile instructions and low temperature do not guarantee adherence.
+
+Both forms validate server-side, preserve other settings, save native Assistant
+versions, read back the result and show **Salvo com sucesso** only after version
+confirmation. Failed saves retain the editor content. Clearing numeric fields
+and saving restores default sampling. Fallback is off until explicitly saved;
+it retries one failed inference only before streaming begins, preserving the
+prompts and tool history. Cancellations, partial output, authorization/billing
+errors and refused/invalid requests do not trigger fallback. The dedicated Lovable
+bridge requires separate deployment and configuration (see backend documentation).
+No production settings are changed by
+installing this release. Backend and published validation details:
+[release notes](docs/LLM_AGENT_SETTINGS.md).

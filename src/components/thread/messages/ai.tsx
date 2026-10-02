@@ -5,9 +5,12 @@ import { useStream } from "@langchain/langgraph-sdk/react";
 import { getContentString } from "../utils";
 import { BranchSwitcher, CommandBar } from "./shared";
 import { MarkdownText } from "../markdown-text";
+import { PaymentSummary } from "./payment-summary";
 import { LoadExternalComponent } from "@langchain/langgraph-sdk/react-ui";
 import { cn } from "@/lib/utils";
 import { ToolCalls, ToolResult } from "./tool-calls";
+import { OfferConfirmation } from "./offer-confirmation";
+import { ResponseAudit } from "./response-audit";
 import { MessageContentComplex } from "@langchain/core/messages";
 import { Fragment } from "react/jsx-runtime";
 import { isAgentInboxInterruptSchema } from "@/lib/agent-inbox-interrupt";
@@ -110,6 +113,8 @@ export function AssistantMessage({
 }) {
   const content = message?.content ?? [];
   const contentString = getContentString(content);
+  const isPaymentSummary =
+    /^(?:\*\*)?Resumo da sua negociação(?:\*\*)?\r?\n/.test(contentString);
   const [hideToolCalls] = useQueryState(
     "hideToolCalls",
     parseAsBoolean.withDefault(false),
@@ -143,6 +148,15 @@ export function AssistantMessage({
   const isToolResult = message?.type === "tool";
 
   if (isToolResult && hideToolCalls) {
+    if (message.name === "generate_offer" && typeof message.content === "string") {
+      let offer: Record<string, unknown> | null = null;
+      try {
+        const parsed: unknown = JSON.parse(message.content);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed))
+          offer = parsed as Record<string, unknown>;
+      } catch { /* Invalid tool output is not a confirmable offer. */ }
+      return offer ? <OfferConfirmation offer={offer} /> : null;
+    }
     return null;
   }
 
@@ -162,8 +176,15 @@ export function AssistantMessage({
           <>
             {contentString.length > 0 && (
               <div className="py-1">
-                <MarkdownText>{contentString}</MarkdownText>
+                {isPaymentSummary ? (
+                  <PaymentSummary text={contentString} />
+                ) : (
+                  <MarkdownText>{contentString}</MarkdownText>
+                )}
               </div>
+            )}
+            {message?.type === "ai" && !hasToolCalls && (
+              <ResponseAudit audit={message.additional_kwargs?.response_audit} />
             )}
 
             {!hideToolCalls && (

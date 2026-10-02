@@ -1,5 +1,8 @@
 "use client";
 
+import { toast } from "sonner";
+import { InstructionHistory } from "@/components/instruction-history";
+
 import React, { useState } from "react";
 import { FileText, FileUp, FlaskConical, LoaderCircle, Save } from "lucide-react";
 import { runRawCompiler } from "@/lib/raw-compiler";
@@ -15,6 +18,7 @@ export function RawOkfCompiler(): React.ReactNode {
   const [ingestionId, setIngestionId] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [agentsContent, setAgentsContent] = useState("");
+  const [agentsVersion, setAgentsVersion] = useState<number>();
   const [agentsSource, setAgentsSource] = useState("");
   const [agentsLoaded, setAgentsLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -56,6 +60,7 @@ export function RawOkfCompiler(): React.ReactNode {
       const result = await runRawCompiler({ operation: "get_agents" });
       setAgentsContent(typeof result.content === "string" ? result.content : "");
       setAgentsSource(typeof result.source === "string" ? result.source : "default");
+      setAgentsVersion(typeof result.version === "number" ? result.version : undefined);
       setAgentsLoaded(true);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao carregar RAW AGENTS.md."); }
     finally { setBusy(false); }
@@ -65,6 +70,10 @@ export function RawOkfCompiler(): React.ReactNode {
     setBusy(true); setError(null); setMessage(null);
     try {
       const result = await runRawCompiler({ operation: "save_agents", agents_content: agentsContent });
+      if (result.saved !== true || typeof result.content !== "string" || typeof result.version !== "number") throw new Error("Não foi possível confirmar a versão salva.");
+      setAgentsContent(result.content);
+      setAgentsVersion(result.version);
+      toast.success("Salvo com sucesso", { description: `RAW AGENTS.md · versão ${result.version}` });
       setAgentsSource(typeof result.source === "string" ? result.source : "runtime_override");
       setMessage("RAW AGENTS.md salvo no storage persistente.");
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao salvar RAW AGENTS.md."); }
@@ -92,7 +101,8 @@ export function RawOkfCompiler(): React.ReactNode {
         <div><h4 className="flex items-center gap-2 font-medium"><FileText className="h-4 w-4" />RAW AGENTS.md</h4><p className="mt-1 text-xs text-neutral-500">Estas instruções são usadas diretamente pelo compilador na próxima análise RAW → OKF.</p></div>
         <div className="text-right"><div className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{agentsSource === "runtime_override" ? "Override ativo" : "Default"}</div>{agentsSource && <div className="mt-1 font-mono text-[10px] text-neutral-400">{agentsSource}</div>}</div>
       </div>
-      {busy && !agentsLoaded ? <div className="flex min-h-[42vh] items-center justify-center text-sm text-neutral-500"><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />Carregando instruções...</div> : <textarea value={agentsContent} onChange={(e) => setAgentsContent(e.target.value)} className="min-h-[48vh] w-full rounded-xl border bg-transparent p-4 font-mono text-xs leading-5" />}
+      {agentsLoaded && <InstructionHistory key={agentsVersion ?? 0} version={agentsVersion} disabled={busy} onSelect={setAgentsContent} />}
+      {busy && !agentsLoaded ? <div className="flex min-h-[42vh] items-center justify-center text-sm text-neutral-500"><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />Carregando instruções...</div> : <textarea disabled={busy} value={agentsContent} onChange={(e) => setAgentsContent(e.target.value)} className="min-h-[48vh] w-full rounded-xl border bg-transparent p-4 font-mono text-xs leading-5" />}
       <div className="mt-3 flex justify-end"><button onClick={() => void saveAgents()} disabled={busy || !agentsContent.trim()} className="flex items-center gap-2 rounded-lg bg-neutral-950 px-4 py-2 text-sm text-white disabled:opacity-40 dark:bg-white dark:text-neutral-950">{busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}Salvar AGENTS.md</button></div>
     </div> : <div className="mt-5 grid gap-4 lg:grid-cols-2">
       <div className="rounded-xl border p-4">

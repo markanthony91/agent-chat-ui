@@ -1,9 +1,13 @@
 "use client";
 
+import { toast } from "sonner";
+import { InstructionHistory } from "@/components/instruction-history";
+
 import React, { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
 import { Client, type Assistant } from "@langchain/langgraph-sdk";
 import { getApiKey } from "@/lib/api-key";
+import { resolveAssistant, saveAssistantContext } from "@/lib/assistant-config";
 import { KnowledgeEditor } from "@/components/knowledge-editor";
 import { OkfBundleImporter } from "@/components/okf-bundle-importer";
 import { RawOkfCompiler } from "@/components/raw-okf-compiler";
@@ -35,13 +39,6 @@ function getConnection() {
   };
 }
 
-async function getAssistant(client: Client, assistantId: string): Promise<Assistant> {
-  const assistants = await client.assistants.search({ graphId: assistantId, limit: 20, offset: 0 });
-  const assistant = assistants.find((item) => item.graph_id === assistantId);
-  if (!assistant) throw new Error("Nenhum assistant encontrado para este graph ID.");
-  return assistant;
-}
-
 export function SystemPromptPanel(): React.ReactNode {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("prompt");
@@ -68,7 +65,7 @@ export function SystemPromptPanel(): React.ReactNode {
         const { apiUrl, assistantId, apiKey } = getConnection();
         if (!apiUrl) throw new Error("Deployment URL não configurada.");
         const client = new Client({ apiUrl, apiKey });
-        const record = await getAssistant(client, assistantId);
+        const record = await resolveAssistant(client, assistantId);
         const context = (record.context ?? {}) as Record<string, unknown>;
         const remotePrompt = typeof context.system_prompt === "string" ? context.system_prompt : DEFAULT_PROMPT;
         setAssistant(record); setPrompt(remotePrompt); setSavedPrompt(remotePrompt);
@@ -84,8 +81,8 @@ export function SystemPromptPanel(): React.ReactNode {
     try {
       const { apiUrl, apiKey } = getConnection();
       const client = new Client({ apiUrl, apiKey });
-      const currentContext = (assistant.context ?? {}) as Record<string, unknown>;
-      const updated = await client.assistants.update(assistant.assistant_id, { context: { ...currentContext, system_prompt: prompt } });
+      const updated = await saveAssistantContext(client, assistant.assistant_id, { system_prompt: prompt });
+      toast.success("Salvo com sucesso", { description: `System Prompt · versão ${updated.version}` });
       setAssistant(updated); setSavedPrompt(prompt); setSaved(true);
       window.setTimeout(() => setSaved(false), 1800);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao salvar o prompt."); }
@@ -108,7 +105,7 @@ export function SystemPromptPanel(): React.ReactNode {
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
             {tab === "prompt" && <>
-              <div className="p-5"><h3 className="font-semibold text-neutral-950 dark:text-neutral-50">System Prompt</h3><p className="mt-1 mb-4 text-sm text-neutral-500 dark:text-neutral-400">Salvo no Assistant do LangGraph e aplicado aos próximos runs.</p>{error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">{error}</div>}<textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={loading || saving} spellCheck={false} className="min-h-[48vh] w-full resize-y rounded-xl border border-neutral-300 bg-neutral-50 p-4 font-mono text-sm leading-6 text-neutral-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" /><div className="mt-2 flex items-center justify-between text-xs text-neutral-500"><span>{prompt.length.toLocaleString()} caracteres</span><span>{loading ? "Carregando..." : isDirty ? "Alterações não salvas" : "Sincronizado com o runtime"}</span></div></div>
+              <div className="p-5"><h3 className="font-semibold text-neutral-950 dark:text-neutral-50">System Prompt</h3><p className="mt-1 mb-4 text-sm text-neutral-500 dark:text-neutral-400">Salvo no Assistant do LangGraph e aplicado aos próximos runs.</p>{assistant && <InstructionHistory key={`${assistant.assistant_id}:${assistant.version}`} assistantId={assistant.assistant_id} field="system_prompt" version={assistant.version} disabled={loading || saving} onSelect={setPrompt} />}{error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">{error}</div>}<textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={loading || saving} spellCheck={false} className="min-h-[48vh] w-full resize-y rounded-xl border border-neutral-300 bg-neutral-50 p-4 font-mono text-sm leading-6 text-neutral-900 outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100" /><div className="mt-2 flex items-center justify-between text-xs text-neutral-500"><span>{prompt.length.toLocaleString()} caracteres</span><span>{loading ? "Carregando..." : isDirty ? "Alterações não salvas" : "Sincronizado com o runtime"}</span></div></div>
               <div className="flex items-center justify-end gap-3 border-t border-neutral-200 px-5 py-4 dark:border-neutral-800">{saved && <span className="text-sm text-emerald-600 dark:text-emerald-400">Salvo no runtime</span>}<button type="button" onClick={() => void savePrompt()} disabled={!isDirty || loading || saving || !assistant} className="rounded-lg bg-neutral-950 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-neutral-950">{saving ? "Salvando..." : "Salvar"}</button></div>
             </>}
             {tab === "knowledge" && <div><div className="px-5 pt-5"><OkfBundleImporter onImported={() => setKnowledgeRevision((value) => value + 1)} /></div><KnowledgeEditor key={knowledgeRevision} /></div>}

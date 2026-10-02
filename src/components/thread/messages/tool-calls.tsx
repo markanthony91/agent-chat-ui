@@ -1,4 +1,5 @@
 import { AIMessage, ToolMessage } from "@langchain/langgraph-sdk";
+import { OfferConfirmation } from "./offer-confirmation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -81,6 +82,7 @@ export function ToolResult({ message }: { message: ToolMessage }) {
     parsedContent = message.content;
   }
 
+  const offer = message.name === "generate_offer" && isJsonContent && !Array.isArray(parsedContent) ? parsedContent : null;
   const contentStr = isJsonContent
     ? JSON.stringify(parsedContent, null, 2)
     : String(message.content);
@@ -95,6 +97,7 @@ export function ToolResult({ message }: { message: ToolMessage }) {
 
   return (
     <div className="mx-auto grid max-w-3xl grid-rows-[1fr_auto] gap-2">
+      {offer && <OfferConfirmation offer={offer} />}
       <div className="overflow-hidden rounded-lg border border-gray-200">
         <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
           <div className="flex flex-wrap items-center justify-between gap-2">

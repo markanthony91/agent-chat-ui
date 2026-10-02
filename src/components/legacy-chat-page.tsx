@@ -9,14 +9,21 @@ import { AgentSettingsPanel } from "@/components/agent-settings-panel";
 import React from "react";
 
 export function LegacyChatPage(): React.ReactNode {
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
   return (
     <React.Suspense fallback={<div>Loading (layout)...</div>}>
-      <Toaster />
-      <AgentSettingsPanel />
+      <Toaster
+        position="top-center"
+        closeButton
+      />
+      <AgentSettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
       <ThreadProvider>
         <StreamProvider>
           <ArtifactProvider>
-            <Thread />
+            <Thread onOpenSettings={() => setSettingsOpen(true)} />
           </ArtifactProvider>
         </StreamProvider>
       </ThreadProvider>

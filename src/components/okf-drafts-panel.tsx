@@ -47,9 +47,10 @@ export function OkfDraftsPanel({ onPublished }: Props): React.ReactNode {
 
   const publish = async () => {
     if (!selected || !validation?.valid) return;
+    if (!window.confirm("Aprovar e publicar este draft? Novas conversas usarão esta versão.")) return;
     setBusy(true); setMessage(null);
     try {
-      const result = await runOkfAdmin({ operation: "publish_draft", draft_id: selected.draft_id });
+      const result = await runOkfAdmin({ operation: "publish_draft", approved: true, draft_id: selected.draft_id });
       setMessage(`Publicado: ${typeof result.bundle_id === "string" ? result.bundle_id : "novo bundle"}`);
       onPublished?.();
     } catch (error) { setMessage(error instanceof Error ? error.message : "Falha ao publicar draft."); }
