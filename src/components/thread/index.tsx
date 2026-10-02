@@ -22,6 +22,7 @@ import {
   SquarePen,
   XIcon,
   Plus,
+  Settings,
 } from "lucide-react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
@@ -30,13 +31,6 @@ import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { GitHubSVG } from "../icons/github";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { ContentBlocksPreview } from "./ContentBlocksPreview";
 import {
@@ -87,31 +81,15 @@ function ScrollToBottom(props: { className?: string }) {
   );
 }
 
-function OpenGitHubRepo() {
+function OpenSettings({ onClick }: { onClick: () => void }) {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <a
-            href="https://github.com/langchain-ai/agent-chat-ui"
-            target="_blank"
-            className="flex items-center justify-center"
-          >
-            <GitHubSVG
-              width="24"
-              height="24"
-            />
-          </a>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          <p>Open GitHub repo</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <TooltipIconButton tooltip="Abrir configurações" variant="ghost" onClick={onClick}>
+      <Settings className="size-5" />
+    </TooltipIconButton>
   );
 }
 
-export function Thread() {
+export function Thread({ onOpenSettings }: { onOpenSettings: () => void }) {
   const [artifactContext, setArtifactContext] = useArtifactContext();
   const [artifactOpen, closeArtifact] = useArtifactOpen();
 
@@ -141,6 +119,7 @@ export function Thread() {
   const stream = useStreamContext();
   const messages = stream.messages;
   const isLoading = stream.isLoading;
+  const runtimeUnavailable = stream.runtimeStatus !== "connected";
 
   const lastError = useRef<string | undefined>(undefined);
 
@@ -153,7 +132,7 @@ export function Thread() {
   };
 
   useEffect(() => {
-    if (!stream.error) {
+    if (!stream.error || runtimeUnavailable) {
       lastError.current = undefined;
       return;
     }
@@ -178,7 +157,7 @@ export function Thread() {
     } catch {
       // no-op
     }
-  }, [stream.error]);
+  }, [runtimeUnavailable, stream.error]);
 
   // TODO: this should be part of the useStream hook
   const prevMessageLength = useRef(0);
@@ -196,7 +175,11 @@ export function Thread() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if ((input.trim().length === 0 && contentBlocks.length === 0) || isLoading)
+    if (
+      (input.trim().length === 0 && contentBlocks.length === 0) ||
+      isLoading ||
+      runtimeUnavailable
+    )
       return;
     setFirstTokenReceived(false);
 
@@ -217,7 +200,7 @@ export function Thread() {
     stream.submit(
       { messages: [...toolMessages, newHumanMessage], context },
       {
-        streamMode: ["values"],
+        streamMode: ["values", "messages"],
         streamSubgraphs: true,
         streamResumable: true,
         optimisticValues: (prev) => ({
@@ -244,7 +227,7 @@ export function Thread() {
     setFirstTokenReceived(false);
     stream.submit(undefined, {
       checkpoint: parentCheckpoint,
-      streamMode: ["values"],
+      streamMode: ["values", "messages"],
       streamSubgraphs: true,
       streamResumable: true,
     });
@@ -326,7 +309,7 @@ export function Thread() {
                 )}
               </div>
               <div className="absolute top-2 right-4 flex items-center">
-                <OpenGitHubRepo />
+                <OpenSettings onClick={onOpenSettings} />
               </div>
             </div>
           )}
@@ -365,14 +348,14 @@ export function Thread() {
                     height={32}
                   />
                   <span className="text-xl font-semibold tracking-tight">
-                    Agent Chat
+                    Agente Zerai
                   </span>
                 </motion.button>
               </div>
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center">
-                  <OpenGitHubRepo />
+                  <OpenSettings onClick={onOpenSettings} />
                 </div>
                 <TooltipIconButton
                   size="lg"
@@ -386,6 +369,15 @@ export function Thread() {
               </div>
 
               <div className="from-background to-background/0 absolute inset-x-0 top-full h-5 bg-gradient-to-b" />
+            </div>
+          )}
+
+          {runtimeUnavailable && (
+            <div
+              role="status"
+              className="mx-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+            >
+              Conexão interrompida. Reconectando sem iniciar outra conversa…
             </div>
           )}
 
@@ -438,7 +430,7 @@ export function Thread() {
                     <div className="flex items-center gap-3">
                       <LangGraphLogoSVG className="h-8 flex-shrink-0" />
                       <h1 className="text-2xl font-semibold tracking-tight">
-                        Agent Chat
+                        Agente Zerai
                       </h1>
                     </div>
                   )}
@@ -464,6 +456,7 @@ export function Thread() {
                       />
                       <textarea
                         value={input}
+                        disabled={runtimeUnavailable}
                         onChange={(e) => setInput(e.target.value)}
                         onPaste={handlePaste}
                         onKeyDown={(e) => {
@@ -479,7 +472,11 @@ export function Thread() {
                             form?.requestSubmit();
                           }
                         }}
-                        placeholder="Type your message..."
+                        placeholder={
+                          runtimeUnavailable
+                            ? "Aguardando reconexão…"
+                            : "Type your message..."
+                        }
                         className="field-sizing-content resize-none border-none bg-transparent p-3.5 pb-0 shadow-none ring-0 outline-none focus:ring-0 focus:outline-none"
                       />
 
@@ -531,6 +528,7 @@ export function Thread() {
                             className="ml-auto shadow-md transition-all"
                             disabled={
                               isLoading ||
+                              runtimeUnavailable ||
                               (!input.trim() && contentBlocks.length === 0)
                             }
                           >

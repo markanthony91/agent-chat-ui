@@ -24,7 +24,8 @@ import { ArrowRight } from "lucide-react";
 import { PasswordInput } from "@/components/ui/password-input";
 import { getApiKey } from "@/lib/api-key";
 import { useThreads } from "./Thread";
-import { toast } from "sonner";
+import { resolveAssistant } from "@/lib/assistant-config";
+import { createClient } from "./client";
 
 export type StateType = { messages: Message[]; ui?: UIMessage[] };
 
@@ -40,7 +41,10 @@ const useTypedStream = useStream<
   }
 >;
 
-type StreamContextType = ReturnType<typeof useTypedStream>;
+export type RuntimeStatus = "connected" | "checking" | "reconnecting";
+type StreamContextType = ReturnType<typeof useTypedStream> & {
+  runtimeStatus: RuntimeStatus;
+};
 const StreamContext = createContext<StreamContextType | undefined>(undefined);
 
 async function sleep(ms = 4000) {
@@ -68,7 +72,7 @@ async function checkGraphStatus(
   }
 }
 
-const StreamSession = ({
+const ConnectedStreamSession = ({
   children,
   apiKey,
   apiUrl,
@@ -82,6 +86,8 @@ const StreamSession = ({
   authScheme?: string;
 }) => {
   const [threadId, setThreadId] = useQueryState("threadId");
+  const [runtimeStatus, setRuntimeStatus] =
+    useState<RuntimeStatus>("connected");
   const { getThreads, setThreads } = useThreads();
   const streamValue = useTypedStream({
     apiUrl,
@@ -93,7 +99,9 @@ const StreamSession = ({
       },
     }),
     threadId: threadId ?? null,
-    fetchStateHistory: true,
+    reconnectOnMount: true,
+    fetchStateHistory: false,
+    onError: () => setRuntimeStatus("checking"),
     onCustomEvent: (event, options) => {
       if (isUIMessage(event) || isRemoveUIMessage(event)) {
         options.mutate((prev) => {
@@ -109,31 +117,93 @@ const StreamSession = ({
       sleep().then(() => getThreads().then(setThreads).catch(console.error));
     },
   });
+  const streamIsLoading = streamValue.isLoading;
+  const stopStream = streamValue.stop;
 
   useEffect(() => {
     checkGraphStatus(apiUrl, apiKey, authScheme).then((ok) => {
       if (!ok) {
-        toast.error("Failed to connect to LangGraph server", {
-          description: () => (
-            <p>
-              Please ensure your graph is running at <code>{apiUrl}</code> and
-              your API key is correctly set (if connecting to a deployed graph).
-            </p>
-          ),
-          duration: 10000,
-          richColors: true,
-          closeButton: true,
-        });
+        setRuntimeStatus("reconnecting");
       }
     });
   }, [apiKey, apiUrl, authScheme]);
 
+  useEffect(() => {
+    if (runtimeStatus === "connected") return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const verify = async () => {
+      const ok = await checkGraphStatus(apiUrl, apiKey, authScheme);
+      if (!active) return;
+      if (ok) {
+        if (runtimeStatus === "reconnecting") window.location.reload();
+        else setRuntimeStatus("connected");
+        return;
+      }
+      setRuntimeStatus("reconnecting");
+      timer = setTimeout(verify, 2000);
+    };
+    void verify();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [apiKey, apiUrl, authScheme, runtimeStatus]);
+
+  useEffect(() => {
+    if (!streamIsLoading || runtimeStatus !== "connected") return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const monitor = async () => {
+      const ok = await checkGraphStatus(apiUrl, apiKey, authScheme);
+      if (!active) return;
+      if (!ok) {
+        setRuntimeStatus("reconnecting");
+        void stopStream();
+        return;
+      }
+      timer = setTimeout(monitor, 2000);
+    };
+    timer = setTimeout(monitor, 1000);
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [
+    apiKey,
+    apiUrl,
+    authScheme,
+    runtimeStatus,
+    streamIsLoading,
+    stopStream,
+  ]);
+
   return (
-    <StreamContext.Provider value={streamValue}>
+    <StreamContext.Provider value={{ ...streamValue, runtimeStatus }}>
       {children}
     </StreamContext.Provider>
   );
 };
+
+function StreamSession(props: React.ComponentProps<typeof ConnectedStreamSession>) {
+  const [resolved, setResolved] = useState<{ key: string; id: string } | null>(null);
+  const [error, setError] = useState<{ key: string; message: string } | null>(null);
+  const { apiUrl, apiKey, assistantId, authScheme } = props;
+  const key = JSON.stringify([apiUrl, apiKey, assistantId, authScheme]);
+  useEffect(() => {
+    let active = true;
+    const client = createClient(apiUrl, apiKey ?? undefined, authScheme);
+    resolveAssistant(client, assistantId).then((record) => {
+      if (active) setResolved({ key, id: record.assistant_id });
+    }).catch(() => {
+      if (active) setError({ key, message: "Não foi possível carregar o assistente. Recarregue para tentar novamente." });
+    });
+    return () => { active = false; };
+  }, [apiUrl, apiKey, assistantId, authScheme, key]);
+  if (error?.key === key) return <p role="alert" className="p-6">{error.message}</p>;
+  if (resolved?.key !== key) return <p role="status" className="p-6">Carregando assistente...</p>;
+  return <ConnectedStreamSession {...props} assistantId={resolved.id} />;
+}
 
 // Default values for the form
 const DEFAULT_API_URL = "http://localhost:2024";
@@ -190,11 +260,11 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
             <div className="flex flex-col items-start gap-2">
               <LangGraphLogoSVG className="h-7" />
               <h1 className="text-xl font-semibold tracking-tight">
-                Agent Chat
+                Agente Zerai
               </h1>
             </div>
             <p className="text-muted-foreground">
-              Welcome to Agent Chat! Before you get started, you need to enter
+              Welcome to Agente Zerai! Before you get started, you need to enter
               the URL of the deployment and the assistant / graph ID.
             </p>
           </div>
