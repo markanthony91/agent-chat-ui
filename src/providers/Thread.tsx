@@ -33,7 +33,13 @@ function getThreadSearchMetadata(
   }
 }
 
-export function ThreadProvider({ children }: { children: ReactNode }) {
+export function ThreadProvider({
+  children,
+  fixedConfig,
+}: {
+  children: ReactNode;
+  fixedConfig?: { apiUrl: string; assistantId: string };
+}) {
   const envApiUrl: string | undefined = process.env.NEXT_PUBLIC_API_URL;
   const envAssistantId: string | undefined =
     process.env.NEXT_PUBLIC_ASSISTANT_ID;
@@ -50,12 +56,14 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
   const [threadsLoading, setThreadsLoading] = useState(false);
 
   const getThreads = useCallback(async (): Promise<Thread[]> => {
-    const resolvedAssistantId = assistantId || envAssistantId;
-    if (!apiUrl || !resolvedAssistantId) return [];
+    const resolvedAssistantId =
+      fixedConfig?.assistantId || assistantId || envAssistantId;
+    const resolvedApiUrl = fixedConfig?.apiUrl || apiUrl;
+    if (!resolvedApiUrl || !resolvedAssistantId) return [];
     const client = createClient(
-      apiUrl,
-      getApiKey() ?? undefined,
-      authScheme || undefined,
+      resolvedApiUrl,
+      fixedConfig ? undefined : (getApiKey() ?? undefined),
+      fixedConfig ? undefined : authScheme || undefined,
     );
 
     const threads = await client.threads.search({
@@ -66,7 +74,7 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
     });
 
     return threads;
-  }, [apiUrl, assistantId, authScheme, envAssistantId]);
+  }, [apiUrl, assistantId, authScheme, envAssistantId, fixedConfig]);
 
   const value = {
     getThreads,

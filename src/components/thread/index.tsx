@@ -111,7 +111,7 @@ function OpenGitHubRepo() {
   );
 }
 
-export function Thread() {
+export function Thread({ embedded = false }: { embedded?: boolean } = {}) {
   const [artifactContext, setArtifactContext] = useArtifactContext();
   const [artifactOpen, closeArtifact] = useArtifactOpen();
 
@@ -256,7 +256,12 @@ export function Thread() {
   );
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div
+      className={cn(
+        "flex w-full overflow-hidden",
+        embedded ? "h-full" : "h-screen",
+      )}
+    >
       <div className="relative hidden lg:flex">
         <motion.div
           className="absolute z-20 h-full overflow-hidden border-r bg-white"
@@ -325,9 +330,11 @@ export function Thread() {
                   </Button>
                 )}
               </div>
-              <div className="absolute top-2 right-4 flex items-center">
-                <OpenGitHubRepo />
-              </div>
+              {!embedded && (
+                <div className="absolute top-2 right-4 flex items-center">
+                  <OpenGitHubRepo />
+                </div>
+              )}
             </div>
           )}
           {chatStarted && (
@@ -371,9 +378,11 @@ export function Thread() {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="flex items-center">
-                  <OpenGitHubRepo />
-                </div>
+                {!embedded && (
+                  <div className="flex items-center">
+                    <OpenGitHubRepo />
+                  </div>
+                )}
                 <TooltipIconButton
                   size="lg"
                   className="p-4"

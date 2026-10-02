@@ -6,5 +6,10 @@ export const dynamic = "force-dynamic";
 
 export default async function Page() {
   if (!configured()) return <LegacyChatPage />;
-  return <PortfolioPlayground signedIn={await sessionValid()} />;
+  return (
+    <PortfolioPlayground
+      signedIn={await sessionValid()}
+      runtimeUrl={process.env.LANGGRAPH_API_URL || ""}
+    />
+  );
 }

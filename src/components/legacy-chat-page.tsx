@@ -8,15 +8,21 @@ import { Toaster } from "@/components/ui/sonner";
 import { AgentSettingsPanel } from "@/components/agent-settings-panel";
 import React from "react";
 
-export function LegacyChatPage(): React.ReactNode {
+export function LegacyChatPage({
+  fixedConfig,
+  embedded = false,
+}: {
+  fixedConfig?: { apiUrl: string; assistantId: string };
+  embedded?: boolean;
+} = {}): React.ReactNode {
   return (
     <React.Suspense fallback={<div>Loading (layout)...</div>}>
       <Toaster />
-      <AgentSettingsPanel />
-      <ThreadProvider>
-        <StreamProvider>
+      {!fixedConfig && <AgentSettingsPanel />}
+      <ThreadProvider fixedConfig={fixedConfig}>
+        <StreamProvider fixedConfig={fixedConfig}>
           <ArtifactProvider>
-            <Thread />
+            <Thread embedded={embedded} />
           </ArtifactProvider>
         </StreamProvider>
       </ThreadProvider>
