@@ -5,6 +5,7 @@ import { useStream } from "@langchain/langgraph-sdk/react";
 import { getContentString } from "../utils";
 import { BranchSwitcher, CommandBar } from "./shared";
 import { MarkdownText } from "../markdown-text";
+import { PaymentSummary } from "./payment-summary";
 import { LoadExternalComponent } from "@langchain/langgraph-sdk/react-ui";
 import { cn } from "@/lib/utils";
 import { ToolCalls, ToolResult } from "./tool-calls";
@@ -112,6 +113,8 @@ export function AssistantMessage({
 }) {
   const content = message?.content ?? [];
   const contentString = getContentString(content);
+  const isPaymentSummary =
+    /^(?:\*\*)?Resumo da sua negociação(?:\*\*)?\r?\n/.test(contentString);
   const [hideToolCalls] = useQueryState(
     "hideToolCalls",
     parseAsBoolean.withDefault(false),
@@ -173,7 +176,11 @@ export function AssistantMessage({
           <>
             {contentString.length > 0 && (
               <div className="py-1">
-                <MarkdownText>{contentString}</MarkdownText>
+                {isPaymentSummary ? (
+                  <PaymentSummary text={contentString} />
+                ) : (
+                  <MarkdownText>{contentString}</MarkdownText>
+                )}
               </div>
             )}
             {message?.type === "ai" && !hasToolCalls && (

@@ -1,9 +1,20 @@
 # Agente Zerai
 
-Frontend 0.6.7 restores the Dataset browser, agent settings, workflow editing,
+Frontend 0.6.8 restores the Dataset browser, agent settings, workflow editing,
 chat formatting and reconnect behavior from the previous Chat UI branch while
 keeping the isolated portfolio Playground. The legacy chat remains the default
 when `PLAYGROUND_ONLY` is not enabled.
+
+Frontend 0.6.7 gives negotiation summaries a dedicated text
+layout: one field/installment per line, separated sections, wrapped dummy codes,
+and the existing simulation/email notices. Values remain verbatim from the runtime;
+no JSON is exposed to the customer and no financial calculation is added.
+Current and historical summaries use this layout instead of Markdown/math parsing.
+No runtime, WhatsApp, email, policy, or stored conversation changes are required.
+Local validation: 10 mocked browser cases passed (1440px/390px, history and SSE),
+TypeScript and focused ESLint passed. Build passed with `npm run build -- --webpack`;
+Turbopack hit a local port-permission error. SSR verified exact amounts and HTML
+escaping; all 8 V8 ranges in the new component executed. Published and validated: see docs/RELEASE_067_2026-09-29.md.
 
 Frontend 0.6.6 evita carregar o histórico ramificado completo no Playground,
 bloqueia novos envios durante indisponibilidade do Runtime e recarrega a mesma
