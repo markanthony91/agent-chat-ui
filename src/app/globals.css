@@ -151,41 +151,366 @@
 }
 
 .portfolio-login {
-  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 1.5rem;
-  background: #f4f6fa;
-  color: #12223c;
+  overflow: hidden;
+  padding: 3rem 2rem;
+  background:
+    radial-gradient(ellipse at 99% 47%, rgb(0 145 218 / 0.16), transparent 39%),
+    radial-gradient(ellipse at 8% 64%, rgb(0 132 194 / 0.13), transparent 34%),
+    #06131f;
+  color: #f5f7fb;
+  font-family: Arial, Helvetica, sans-serif;
 }
-.portfolio-login form {
-  width: min(100%, 420px);
+
+.portfolio-login::before,
+.portfolio-login::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  transform: rotate(43deg);
+}
+
+.portfolio-login::before {
+  top: -365px;
+  left: -170px;
+  width: 430px;
+  height: 620px;
+  border: 1px solid rgb(0 197 240 / 0.68);
+  border-radius: 80px;
+  background: linear-gradient(135deg, rgb(17 72 105 / 0.55), transparent 62%);
+}
+
+.portfolio-login::after {
+  bottom: -360px;
+  left: -215px;
+  width: 420px;
+  height: 700px;
+  border: 1px solid rgb(0 197 240 / 0.68);
+  border-radius: 84px;
+  background: linear-gradient(45deg, rgb(0 147 216 / 0.3), transparent 65%);
+}
+
+.portfolio-login__layout {
   display: grid;
-  gap: 1rem;
-  padding: 2rem;
-  border: 1px solid #d5dce7;
-  border-radius: 16px;
-  background: white;
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 528px);
+  align-items: center;
+  gap: clamp(4rem, 8vw, 10rem);
+  width: min(100%, 1220px);
 }
-.portfolio-login h1 {
-  font-size: 1.5rem;
+
+.portfolio-login__brand {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.portfolio-login__wordmark {
+  display: inline-block;
+  color: #f5f7fb;
+  font-size: 3.5rem;
+  font-weight: 700;
+  letter-spacing: -0.085em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.portfolio-login__wordmark > span {
+  background: linear-gradient(135deg, #46a5ff, #00d6ee 70%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.portfolio-login__brand-caption {
+  max-width: 175px;
+  padding-left: 1rem;
+  border-left: 1px solid #185674;
+  color: #aebfd0;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.portfolio-login__welcome {
+  margin-top: 5.2rem;
+}
+
+.portfolio-login__welcome h1 {
+  font-size: clamp(2.3rem, 3.2vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.portfolio-login__welcome h1 span {
+  color: #02c5ee;
+}
+
+.portfolio-login__welcome p {
+  max-width: 430px;
+  margin-top: 1rem;
+  color: #b4c2d5;
+  font-size: 1.15rem;
+  line-height: 1.55;
+}
+
+.portfolio-login__features {
+  display: grid;
+  gap: 1.35rem;
+  margin-top: 2.8rem;
+}
+
+.portfolio-login__feature {
+  display: flex;
+  align-items: center;
+  gap: 1.35rem;
+}
+
+.portfolio-login__feature-icon {
+  display: grid;
+  flex: 0 0 62px;
+  place-items: center;
+  height: 62px;
+  border: 1px solid rgb(30 105 142 / 0.22);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #102b40, #081b2b);
+  color: #00c8f0;
+}
+
+.portfolio-login__feature-icon svg {
+  width: 29px;
+  height: 29px;
+  stroke-width: 2.2;
+}
+
+.portfolio-login__feature strong {
+  font-size: 1rem;
+}
+
+.portfolio-login__feature p {
+  margin-top: 0.25rem;
+  color: #aebfd0;
+  font-size: 0.95rem;
+}
+
+.portfolio-login__signature {
+  margin-top: 4.2rem;
+  color: #aebfd0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.portfolio-login__signature::before {
+  display: block;
+  width: 38px;
+  height: 2px;
+  margin-bottom: 1rem;
+  background: #00c8e9;
+  content: "";
+}
+
+.portfolio-login__card {
+  display: grid;
+  width: 100%;
+  padding: 3.2rem 2.7rem 2.8rem;
+  border: 1px solid #16435c;
+  border-radius: 22px;
+  background: rgb(5 21 35 / 0.68);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.12);
+}
+
+.portfolio-login__wordmark--card {
+  justify-self: center;
+  font-size: 3.1rem;
+}
+
+.portfolio-login__card h2 {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 1.45rem;
   font-weight: 700;
 }
-.portfolio-login input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #aab6c8;
-  border-radius: 8px;
-  background: white;
-  color: #12223c;
+
+.portfolio-login__card-lead {
+  margin-top: 0.55rem;
+  color: #b4c2d5;
+  text-align: center;
+  font-size: 0.95rem;
 }
-.portfolio-login button {
-  padding: 0.65rem 1rem;
-  border-radius: 8px;
-  background: #0b5c50;
-  color: white;
+
+.portfolio-login__card label {
+  margin-top: 2.7rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.portfolio-login__password {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 0.95rem;
+  border: 1px solid #1a4964;
+  border-radius: 10px;
+  background: #0a2133;
+}
+
+.portfolio-login__password:focus-within {
+  border-color: #00c8f0;
+  outline: 2px solid rgb(0 200 240 / 0.23);
+}
+
+.portfolio-login__password > svg {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  color: #dce9f5;
+}
+
+.portfolio-login__password input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.85rem 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f5f7fb;
+}
+
+.portfolio-login__password input::placeholder {
+  color: #aebfd0;
+}
+
+.portfolio-login__password button {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+  height: 28px;
+  color: #aebfd0;
   cursor: pointer;
 }
+
+.portfolio-login__password button:hover {
+  color: #00c8f0;
+}
+
+.portfolio-login__password button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.portfolio-login__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  min-height: 52px;
+  margin-top: 2rem;
+  border-radius: 9px;
+  background: linear-gradient(110deg, #00bce9, #16d1f2);
+  color: #031924;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.portfolio-login__submit:hover {
+  filter: brightness(1.1);
+}
+
+.portfolio-login__submit svg {
+  width: 18px;
+  height: 18px;
+}
+
+.portfolio-login__restricted {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 2.8rem;
+  padding-top: 1.8rem;
+  border-top: 1px solid #16435c;
+}
+
+.portfolio-login__restricted > svg {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  color: #00c8f0;
+}
+
+.portfolio-login__restricted strong {
+  font-size: 0.9rem;
+}
+
+.portfolio-login__restricted p {
+  margin-top: 0.2rem;
+  color: #aebfd0;
+  font-size: 0.82rem;
+}
+
 .portfolio-login [role="alert"] {
-  color: #a21d1d;
+  margin-top: 0.8rem;
+  color: #ff8f9d;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 1050px) {
+  .portfolio-login__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 480px);
+    gap: 3rem;
+  }
+
+  .portfolio-login__brand-caption,
+  .portfolio-login__features,
+  .portfolio-login__signature {
+    display: none;
+  }
+
+  .portfolio-login__welcome {
+    margin-top: 2.5rem;
+  }
+}
+
+@media (max-width: 800px) {
+  .portfolio-login {
+    padding: 2rem 1.25rem;
+  }
+
+  .portfolio-login::before,
+  .portfolio-login::after {
+    display: none;
+  }
+
+  .portfolio-login__layout {
+    grid-template-columns: 1fr;
+    gap: 2.2rem;
+    max-width: 520px;
+  }
+
+  .portfolio-login__intro {
+    text-align: center;
+  }
+
+  .portfolio-login__brand {
+    justify-content: center;
+  }
+
+  .portfolio-login__welcome {
+    margin-top: 1.7rem;
+  }
+
+  .portfolio-login__welcome p {
+    margin-right: auto;
+    margin-left: auto;
+    font-size: 1rem;
+  }
+
+  .portfolio-login__card {
+    padding: 2.5rem 1.5rem;
+  }
 }

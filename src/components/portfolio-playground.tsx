@@ -2,6 +2,16 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useQueryState } from "nuqs";
+import {
+  ArrowRight,
+  BarChart3,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  MessageCircle,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
 import { LegacyChatPage } from "@/components/legacy-chat-page";
 import { LangGraphLogoSVG } from "@/components/icons/langgraph";
 
@@ -21,6 +31,7 @@ export function PortfolioPlayground({
   runtimeUrl: string;
 }) {
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loggedIn, setLoggedIn] = useState(signedIn);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [scopeId, setScopeId] = useState<number | null>(null);
@@ -62,21 +73,121 @@ export function PortfolioPlayground({
   if (!loggedIn)
     return (
       <main className="portfolio-login">
-        <form onSubmit={login}>
-          <h1>Playground de carteiras</h1>
-          <p>Acesso interno para testar agentes por carteira.</p>
-          <label htmlFor="password">Senha</label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <button type="submit">Entrar</button>
-          {error && <p role="alert">{error}</p>}
-        </form>
+        <div className="portfolio-login__layout">
+          <section className="portfolio-login__intro">
+            <div className="portfolio-login__brand">
+              <span
+                className="portfolio-login__wordmark"
+                aria-label="Zerai"
+              >
+                <span>Z</span>erai
+              </span>
+              <span className="portfolio-login__brand-caption">
+                Plataforma de Inteligência Conversacional
+              </span>
+            </div>
+
+            <div className="portfolio-login__welcome">
+              <h1>
+                Bem-vindo <span>de volta!</span>
+              </h1>
+              <p>
+                Acesse o ambiente interno e continue impulsionando conversas que
+                geram resultados.
+              </p>
+            </div>
+
+            <div className="portfolio-login__features">
+              <div className="portfolio-login__feature">
+                <span className="portfolio-login__feature-icon">
+                  <MessageCircle aria-hidden="true" />
+                </span>
+                <div>
+                  <strong>Agentes por carteira</strong>
+                  <p>Teste cada agente no seu próprio contexto.</p>
+                </div>
+              </div>
+              <div className="portfolio-login__feature">
+                <span className="portfolio-login__feature-icon">
+                  <Zap aria-hidden="true" />
+                </span>
+                <div>
+                  <strong>Conversas em tempo real</strong>
+                  <p>Acompanhe respostas e chamadas de tools.</p>
+                </div>
+              </div>
+              <div className="portfolio-login__feature">
+                <span className="portfolio-login__feature-icon">
+                  <BarChart3 aria-hidden="true" />
+                </span>
+                <div>
+                  <strong>Testes com clareza</strong>
+                  <p>Valide o comportamento antes de avançar.</p>
+                </div>
+              </div>
+            </div>
+
+            <p className="portfolio-login__signature">
+              Pessoas. Conversas. Resultados.
+              <br />
+              Isso é Zerai.
+            </p>
+          </section>
+
+          <form
+            className="portfolio-login__card"
+            onSubmit={login}
+          >
+            <span
+              className="portfolio-login__wordmark portfolio-login__wordmark--card"
+              aria-label="Zerai"
+            >
+              <span>Z</span>erai
+            </span>
+            <h2>Acesso interno</h2>
+            <p className="portfolio-login__card-lead">
+              Entre com a senha do Playground para continuar.
+            </p>
+            <label htmlFor="password">Senha</label>
+            <div className="portfolio-login__password">
+              <LockKeyhole aria-hidden="true" />
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="Digite sua senha"
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                onClick={() => setShowPassword((current) => !current)}
+              >
+                {showPassword ? (
+                  <EyeOff aria-hidden="true" />
+                ) : (
+                  <Eye aria-hidden="true" />
+                )}
+              </button>
+            </div>
+            {error && <p role="alert">{error}</p>}
+            <button
+              className="portfolio-login__submit"
+              type="submit"
+            >
+              Entrar <ArrowRight aria-hidden="true" />
+            </button>
+            <div className="portfolio-login__restricted">
+              <ShieldCheck aria-hidden="true" />
+              <div>
+                <strong>Acesso restrito</strong>
+                <p>Ambiente exclusivo para a equipe Zerai.</p>
+              </div>
+            </div>
+          </form>
+        </div>
       </main>
     );
 
