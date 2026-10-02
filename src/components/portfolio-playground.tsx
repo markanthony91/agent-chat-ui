@@ -8,6 +8,7 @@ import {
   Eye,
   EyeOff,
   LockKeyhole,
+  Mail,
   MessageCircle,
   ShieldCheck,
   Zap,
@@ -30,7 +31,11 @@ export function PortfolioPlayground({
   signedIn: boolean;
   runtimeUrl: string;
 }) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [otpPending, setOtpPending] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loggedIn, setLoggedIn] = useState(signedIn);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
@@ -53,15 +58,47 @@ export function PortfolioPlayground({
   async function login(event: FormEvent) {
     event.preventDefault();
     setError("");
-    const response = await fetch("/api/portfolio/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    if (!response.ok)
-      return setError("Senha incorreta ou acesso temporariamente bloqueado.");
-    setPassword("");
-    setLoggedIn(true);
+    setBusy(true);
+    try {
+      const response = await fetch("/api/portfolio/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok)
+        return setError(
+          "E-mail ou senha inválidos, ou acesso temporariamente indisponível.",
+        );
+      setPassword("");
+      setOtpPending(true);
+    } catch {
+      setError("Não foi possível enviar o código. Tente novamente.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verifyCode(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    setBusy(true);
+    try {
+      const response = await fetch("/api/portfolio/auth", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (!response.ok)
+        return setError(
+          "Código inválido ou expirado. Confira o e-mail e tente novamente.",
+        );
+      setCode("");
+      setLoggedIn(true);
+    } catch {
+      setError("Não foi possível verificar o código. Tente novamente.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function selectPortfolio(value: number) {
@@ -136,7 +173,7 @@ export function PortfolioPlayground({
 
           <form
             className="portfolio-login__card"
-            onSubmit={login}
+            onSubmit={otpPending ? verifyCode : login}
           >
             <span
               className="portfolio-login__wordmark portfolio-login__wordmark--card"
@@ -144,41 +181,98 @@ export function PortfolioPlayground({
             >
               <span>Z</span>erai
             </span>
-            <h2>Acesso interno</h2>
+            <h2>{otpPending ? "Confirme seu acesso" : "Acesso interno"}</h2>
             <p className="portfolio-login__card-lead">
-              Entre com a senha do Playground para continuar.
+              {otpPending
+                ? `Enviamos um código de seis dígitos para ${email}.`
+                : "Entre com seu e-mail e senha para continuar."}
             </p>
-            <label htmlFor="password">Senha</label>
-            <div className="portfolio-login__password">
-              <LockKeyhole aria-hidden="true" />
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                placeholder="Digite sua senha"
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-              <button
-                type="button"
-                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                onClick={() => setShowPassword((current) => !current)}
-              >
-                {showPassword ? (
-                  <EyeOff aria-hidden="true" />
-                ) : (
-                  <Eye aria-hidden="true" />
-                )}
-              </button>
-            </div>
+            {otpPending ? (
+              <>
+                <label htmlFor="code">Código de acesso</label>
+                <div className="portfolio-login__password">
+                  <LockKeyhole aria-hidden="true" />
+                  <input
+                    id="code"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]{6}"
+                    autoComplete="one-time-code"
+                    placeholder="000000"
+                    maxLength={6}
+                    required
+                    value={code}
+                    onChange={(event) =>
+                      setCode(event.target.value.replace(/\D/g, ""))
+                    }
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <label htmlFor="email">E-mail</label>
+                <div className="portfolio-login__password">
+                  <Mail aria-hidden="true" />
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="username"
+                    placeholder="seu@email.com"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                </div>
+                <label htmlFor="password">Senha</label>
+                <div className="portfolio-login__password">
+                  <LockKeyhole aria-hidden="true" />
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Digite sua senha"
+                    required
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    aria-label={
+                      showPassword ? "Ocultar senha" : "Mostrar senha"
+                    }
+                    onClick={() => setShowPassword((current) => !current)}
+                  >
+                    {showPassword ? (
+                      <EyeOff aria-hidden="true" />
+                    ) : (
+                      <Eye aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
             {error && <p role="alert">{error}</p>}
             <button
               className="portfolio-login__submit"
               type="submit"
+              disabled={busy}
             >
-              Entrar <ArrowRight aria-hidden="true" />
+              {otpPending ? "Confirmar código" : "Enviar código"}{" "}
+              <ArrowRight aria-hidden="true" />
             </button>
+            {otpPending && (
+              <button
+                type="button"
+                className="portfolio-login__back"
+                onClick={() => {
+                  setOtpPending(false);
+                  setCode("");
+                  setError("");
+                }}
+              >
+                Voltar ao login
+              </button>
+            )}
             <div className="portfolio-login__restricted">
               <ShieldCheck aria-hidden="true" />
               <div>

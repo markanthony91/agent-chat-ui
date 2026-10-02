@@ -1,7 +1,15 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import {
+  createHmac,
+  randomBytes,
+  randomInt,
+  timingSafeEqual,
+} from "node:crypto";
 import { cookies } from "next/headers";
+import { createClient } from "redis";
 
 const cookieName = "zerai_playground_session";
+const challengeCookieName = "zerai_playground_challenge";
+let redisPromise: Promise<ReturnType<typeof createClient>> | undefined;
 
 function secret() {
   const value = process.env.PLAYGROUND_COOKIE_SECRET || "";
@@ -37,22 +45,45 @@ export function checkPassword(candidate: unknown) {
   );
 }
 
-export function issueSession() {
+export function allowedEmail(candidate: unknown): candidate is string {
+  if (typeof candidate !== "string") return false;
+  const emails = (process.env.PLAYGROUND_ALLOWED_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  return (
+    emails.length === 2 &&
+    new Set(emails).size === 2 &&
+    emails.includes(candidate.trim().toLowerCase())
+  );
+}
+
+export function issueSession(email: string) {
   const expiry = String(Date.now() + 8 * 60 * 60 * 1000);
   const nonce = randomBytes(16).toString("hex");
-  const payload = `${expiry}.${nonce}`;
+  const payload = `${expiry}.${nonce}.${Buffer.from(email).toString("base64url")}`;
   return `${payload}.${signature(payload)}`;
 }
 
 export async function sessionIdentity() {
   if (!configured()) return false;
   const raw = (await cookies()).get(cookieName)?.value || "";
-  const [expiry, nonce, mac] = raw.split(".");
+  const parts = raw.split(".");
+  if (parts.length !== 4) return false;
+  const [expiry, nonce, encodedEmail, mac] = parts;
   if (!/^\d+$/.test(expiry || "") || !/^[a-f0-9]{32}$/.test(nonce || ""))
     return false;
-  if (Number(expiry) <= Date.now() || !/^[a-f0-9]{64}$/.test(mac || ""))
+  if (
+    Number(expiry) <= Date.now() ||
+    !/^[A-Za-z0-9_-]+$/.test(encodedEmail || "") ||
+    !/^[a-f0-9]{64}$/.test(mac || "")
+  )
     return false;
-  return equal(mac, signature(`${expiry}.${nonce}`)) ? nonce : false;
+  const email = Buffer.from(encodedEmail, "base64url").toString();
+  return allowedEmail(email) &&
+    equal(mac, signature(`${expiry}.${nonce}.${encodedEmail}`))
+    ? email
+    : false;
 }
 
 export async function sessionValid() {
@@ -68,6 +99,59 @@ export function sessionCookie() {
     path: "/",
     maxAge: 8 * 60 * 60,
   };
+}
+
+export function challengeCookie() {
+  return { ...sessionCookie(), name: challengeCookieName, maxAge: 600 };
+}
+
+export function challengeCookieValue() {
+  return cookies().then((store) => store.get(challengeCookieName)?.value || "");
+}
+
+export async function otpStore() {
+  const url = process.env.PLAYGROUND_REDIS_URL || "";
+  if (!/^rediss?:\/\//.test(url)) throw new Error("otp_store_not_configured");
+  if (redisPromise) {
+    const client = await redisPromise;
+    if (!client.isReady) {
+      client.destroy();
+      redisPromise = undefined;
+    }
+  }
+  if (!redisPromise) {
+    redisPromise = (async () => {
+      const client = createClient({
+        url,
+        socket: { connectTimeout: 3000, reconnectStrategy: false },
+      });
+      client.on("error", () => {});
+      await client.connect();
+      return client;
+    })().catch(() => {
+      redisPromise = undefined;
+      throw new Error("otp_store_unavailable");
+    });
+  }
+  return redisPromise;
+}
+
+export function otpDigest(token: string, code: string) {
+  return createHmac("sha256", secret())
+    .update(`${token}:${code}`)
+    .digest("hex");
+}
+
+export function otpMatches(actual: string, expected: string) {
+  return equal(actual, expected);
+}
+
+export function newChallenge() {
+  return randomBytes(24).toString("hex");
+}
+
+export function newOtp() {
+  return String(randomInt(100000, 1000000));
 }
 
 export type Portfolio = {

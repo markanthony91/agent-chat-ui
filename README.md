@@ -3,15 +3,19 @@
 ## Playground separado por carteira
 
 Uma implantação adicional deste mesmo repositório com `PLAYGROUND_ONLY=true`
-exibe login por senha e seleção de carteira. Depois da seleção, reutiliza o
+exibe login por e-mail, senha e código temporário enviado por e-mail. Apenas os
+dois endereços em `PLAYGROUND_ALLOWED_EMAILS` podem entrar. Depois da seleção, reutiliza o
 Agent Chat UI original, com streaming, histórico, cards de tools e upload. A
 implantação existente, sem essa variável, mantém o chat atual. O Playground
 oculta o link do GitHub presente no chat original. A tela de login usa a
-identidade visual Zerai; a autenticação continua sendo por senha, sem login
-por e-mail ou Microsoft.
+identidade visual Zerai.
 
-Configure no serviço novo `PLAYGROUND_PASSWORD` (mínimo 20 caracteres),
-`PLAYGROUND_COOKIE_SECRET` (mínimo 32 caracteres), `CHANNEL_CONSOLE_URL`,
+Configure no serviço novo `PLAYGROUND_PASSWORD` (mínimo 20 caracteres; senha
+compartilhada inicial dos dois usuários), `PLAYGROUND_ALLOWED_EMAILS` (exatamente
+dois e-mails, separados por vírgula), `PLAYGROUND_COOKIE_SECRET` (mínimo 32
+caracteres), `PLAYGROUND_REDIS_URL` (referência ao Redis Railway),
+`PLAYGROUND_RESEND_API_KEY` (chave de envio), `PLAYGROUND_OTP_FROM` (remetente
+de domínio verificado no Resend) e `CHANNEL_CONSOLE_URL`,
 `PLAYGROUND_API_TOKEN` (mesmo token de 64 caracteres hexadecimais do Console),
 `LANGGRAPH_API_URL`. Para a carteira legada com UUID ainda não gravado em
 Canais, configure `PLAYGROUND_LEGACY_ASSISTANT_ID` com um Assistant exclusivo
@@ -23,13 +27,17 @@ configurada, como no Agent Chat UI original.
 `PLAYGROUND_CHAT_SCOPE_IDS=1,2` libera o chat das carteiras com Assistant
 configurado. O histórico é consultado pelo Assistant selecionado e a troca de
 carteira limpa o thread aberto. O passthrough LangGraph genérico e a rota de
-chat simplificada ficam indisponíveis nesse serviço. A senha protege o acesso
+chat simplificada ficam indisponíveis nesse serviço. O login protege o acesso
 à interface; ela não é uma autorização no Runtime. Antes de testar ações
 financeiras em outra carteira, vincule os dados, o OKF e as tools dessa
 carteira no Runtime.
 
-Teste local: `pnpm install --frozen-lockfile`, `PLAYGROUND_ONLY=true pnpm build`
-e `pnpm start`. Use serviços simulados para testar login, catálogo, escopo e
+O código expira em 10 minutos, aceita até cinco tentativas, só pode ser usado
+uma vez e cada conta pode solicitar até cinco códigos em 15 minutos. A sessão
+expira em oito horas. Sem Redis ou Resend configurados, o login não é concluído.
+
+Teste local: `pnpm install --frozen-lockfile`, `pnpm test:portfolio` (requer
+`redis-server`) e `pnpm start`. Use serviços simulados para testar login, catálogo, escopo e
 interface sem executar negociação real.
 
 Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
