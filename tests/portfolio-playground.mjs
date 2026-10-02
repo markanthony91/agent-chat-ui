@@ -100,7 +100,6 @@ const app = spawn(
     env: {
       ...process.env,
       PLAYGROUND_ONLY: "true",
-      PLAYGROUND_PASSWORD: "synthetic-playground-password",
       PLAYGROUND_ALLOWED_EMAILS: "one@example.test,two@example.test",
       PLAYGROUND_COOKIE_SECRET: "synthetic-cookie-secret-0123456789abcdef",
       PLAYGROUND_REDIS_URL: `redis://127.0.0.1:${redisPort}`,
@@ -148,7 +147,6 @@ try {
         },
         body: JSON.stringify({
           email: "one@example.test",
-          password: "synthetic-playground-password",
         }),
       })
     ).status,
@@ -161,20 +159,6 @@ try {
         headers: { ...origin, "Content-Type": "application/json" },
         body: JSON.stringify({
           email: "outsider@example.test",
-          password: "synthetic-playground-password",
-        }),
-      })
-    ).status,
-    401,
-  );
-  assert.equal(
-    (
-      await fetch(`${base}/api/portfolio/auth`, {
-        method: "POST",
-        headers: { ...origin, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: "one@example.test",
-          password: "wrong-password",
         }),
       })
     ).status,
@@ -186,13 +170,13 @@ try {
     headers: { ...origin, "Content-Type": "application/json" },
     body: JSON.stringify({
       email: "one@example.test",
-      password: "synthetic-playground-password",
     }),
   });
   assert.equal(login.status, 200);
   assert.equal((await login.json()).otp_required, true);
   assert.equal(emails.length, 1);
   assert.deepEqual(emails[0].to, ["one@example.test"]);
+  assert.match(emails[0].html, /Seu código de acesso/);
   const challengeCookie = login.headers.get("set-cookie").split(";")[0];
   assert.equal(
     (
@@ -204,6 +188,7 @@ try {
   );
   const code = emails[0].text.match(/\b\d{6}\b/)?.[0];
   assert.ok(code);
+  assert.ok(emails[0].html.includes(code));
   const wrong = await fetch(`${base}/api/portfolio/auth`, {
     method: "PUT",
     headers: {
@@ -270,9 +255,6 @@ try {
     const loginPage = await browser.newPage();
     await loginPage.goto(base);
     await loginPage.getByLabel("E-mail").fill("two@example.test");
-    await loginPage
-      .getByLabel("Senha", { exact: true })
-      .fill("synthetic-playground-password");
     await loginPage.getByRole("button", { name: "Enviar código" }).click();
     await loginPage.getByLabel("Código de acesso").waitFor();
     assert.equal(emails.length, 2);

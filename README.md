@@ -3,16 +3,15 @@
 ## Playground separado por carteira
 
 Uma implantação adicional deste mesmo repositório com `PLAYGROUND_ONLY=true`
-exibe login por e-mail, senha e código temporário enviado por e-mail. Apenas os
+exibe login por e-mail e código temporário enviado por e-mail. Apenas os
 dois endereços em `PLAYGROUND_ALLOWED_EMAILS` podem entrar. Depois da seleção, reutiliza o
 Agent Chat UI original, com streaming, histórico, cards de tools e upload. A
 implantação existente, sem essa variável, mantém o chat atual. O Playground
 oculta o link do GitHub presente no chat original. A tela de login usa a
 identidade visual Zerai.
 
-Configure no serviço novo `PLAYGROUND_PASSWORD` (mínimo 20 caracteres; senha
-compartilhada inicial dos dois usuários), `PLAYGROUND_ALLOWED_EMAILS` (exatamente
-dois e-mails, separados por vírgula), `PLAYGROUND_COOKIE_SECRET` (mínimo 32
+Configure no serviço novo `PLAYGROUND_ALLOWED_EMAILS` (exatamente dois e-mails,
+separados por vírgula), `PLAYGROUND_COOKIE_SECRET` (mínimo 32
 caracteres), `PLAYGROUND_REDIS_URL` (referência ao Redis Railway),
 `PLAYGROUND_RESEND_API_KEY` (chave de envio), `PLAYGROUND_OTP_FROM` (remetente
 de domínio verificado no Resend) e `CHANNEL_CONSOLE_URL`,
@@ -21,7 +20,7 @@ de domínio verificado no Resend) e `CHANNEL_CONSOLE_URL`,
 Canais, configure `PLAYGROUND_LEGACY_ASSISTANT_ID` com um Assistant exclusivo
 do Playground, criado a partir da configuração da carteira. A lista de
 carteiras e seus Assistant IDs vêm do Console em tempo de execução. O token
-do Console e a senha ficam no servidor; o navegador acessa o Runtime pela URL
+do Console e a chave do Resend ficam no servidor; o navegador acessa o Runtime pela URL
 configurada, como no Agent Chat UI original.
 
 `PLAYGROUND_CHAT_SCOPE_IDS=1,2` libera o chat das carteiras com Assistant

@@ -348,17 +348,13 @@
   font-weight: 600;
 }
 
-.portfolio-login__password + label {
-  margin-top: 1.25rem;
-}
-
 .portfolio-login__card [role="alert"] {
   margin-top: 1rem;
   color: #ffb4b4;
   font-size: 0.88rem;
 }
 
-.portfolio-login__password {
+.portfolio-login__field {
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -370,19 +366,19 @@
   background: #0a2133;
 }
 
-.portfolio-login__password:focus-within {
+.portfolio-login__field:focus-within {
   border-color: #00c8f0;
   outline: 2px solid rgb(0 200 240 / 0.23);
 }
 
-.portfolio-login__password > svg {
+.portfolio-login__field > svg {
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
   color: #dce9f5;
 }
 
-.portfolio-login__password input {
+.portfolio-login__field input {
   flex: 1;
   min-width: 0;
   padding: 0.85rem 0;
@@ -392,26 +388,8 @@
   color: #f5f7fb;
 }
 
-.portfolio-login__password input::placeholder {
+.portfolio-login__field input::placeholder {
   color: #aebfd0;
-}
-
-.portfolio-login__password button {
-  display: grid;
-  flex: 0 0 28px;
-  place-items: center;
-  height: 28px;
-  color: #aebfd0;
-  cursor: pointer;
-}
-
-.portfolio-login__password button:hover {
-  color: #00c8f0;
-}
-
-.portfolio-login__password button svg {
-  width: 19px;
-  height: 19px;
 }
 
 .portfolio-login__submit {

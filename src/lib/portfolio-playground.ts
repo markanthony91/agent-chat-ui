@@ -36,15 +36,6 @@ export function allowedOrigin(origin: string | null, fallback: string) {
   return origin === (publicDomain ? `https://${publicDomain}` : fallback);
 }
 
-export function checkPassword(candidate: unknown) {
-  const expected = process.env.PLAYGROUND_PASSWORD || "";
-  return (
-    expected.length >= 20 &&
-    typeof candidate === "string" &&
-    equal(candidate, expected)
-  );
-}
-
 export function allowedEmail(candidate: unknown): candidate is string {
   if (typeof candidate !== "string") return false;
   const emails = (process.env.PLAYGROUND_ALLOWED_EMAILS || "")

@@ -6,7 +6,6 @@ import {
   allowedOrigin,
   challengeCookie,
   challengeCookieValue,
-  checkPassword,
   configured,
   issueSession,
   newChallenge,
@@ -56,6 +55,18 @@ async function sendOtp(email: string, code: string) {
       to: [email],
       subject: "Código de acesso ao Playground Zerai",
       text: `Seu código de acesso é ${code}. Ele expira em 10 minutos. Se você não solicitou este acesso, ignore esta mensagem.`,
+      html: `<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"></head>
+<body style="margin:0;padding:24px;background:#f3f7fa;color:#142433;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td align="center">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:520px;background:#ffffff;border:1px solid #d8e8ef;border-radius:16px">
+<tr><td style="padding:32px 32px 12px;font-size:30px;font-weight:700;letter-spacing:-2px;color:#142433"><span style="color:#00afd6">Z</span>erai</td></tr>
+<tr><td style="padding:12px 32px 0;font-size:24px;font-weight:700;line-height:1.3;color:#142433">Seu código de acesso</td></tr>
+<tr><td style="padding:12px 32px 0;font-size:16px;line-height:1.5;color:#34495a">Use este código para entrar no Playground Zerai:</td></tr>
+<tr><td style="padding:28px 32px"><div style="padding:18px 12px;border:2px solid #00afd6;border-radius:10px;text-align:center;font-size:32px;font-weight:700;letter-spacing:8px;color:#142433">${code}</div></td></tr>
+<tr><td style="padding:0 32px 16px;font-size:14px;line-height:1.5;color:#34495a">O código expira em 10 minutos e só pode ser usado uma vez.</td></tr>
+<tr><td style="padding:16px 32px 32px;border-top:1px solid #d8e8ef;font-size:13px;line-height:1.5;color:#526675">Se você não solicitou este acesso, ignore esta mensagem.</td></tr>
+</table></td></tr></table></body></html>`,
     }),
     signal: AbortSignal.timeout(8000),
   });
@@ -75,8 +86,6 @@ export async function POST(request: NextRequest) {
     const count = await store.incr(rateKey);
     if (count === 1) await store.expire(rateKey, 900);
     if (count > 5) return json({ error: "rate_limited" }, 429);
-    if (!checkPassword(input.password))
-      return json({ error: "unauthorized" }, 401);
 
     const token = newChallenge();
     const code = newOtp();

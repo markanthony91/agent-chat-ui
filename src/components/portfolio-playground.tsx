@@ -5,8 +5,6 @@ import { useQueryState } from "nuqs";
 import {
   ArrowRight,
   BarChart3,
-  Eye,
-  EyeOff,
   LockKeyhole,
   Mail,
   MessageCircle,
@@ -32,11 +30,9 @@ export function PortfolioPlayground({
   runtimeUrl: string;
 }) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [otpPending, setOtpPending] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [loggedIn, setLoggedIn] = useState(signedIn);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [scopeId, setScopeId] = useState<number | null>(null);
@@ -63,13 +59,12 @@ export function PortfolioPlayground({
       const response = await fetch("/api/portfolio/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
       if (!response.ok)
         return setError(
-          "E-mail ou senha inválidos, ou acesso temporariamente indisponível.",
+          "E-mail não autorizado ou envio temporariamente indisponível.",
         );
-      setPassword("");
       setOtpPending(true);
     } catch {
       setError("Não foi possível enviar o código. Tente novamente.");
@@ -185,12 +180,12 @@ export function PortfolioPlayground({
             <p className="portfolio-login__card-lead">
               {otpPending
                 ? `Enviamos um código de seis dígitos para ${email}.`
-                : "Entre com seu e-mail e senha para continuar."}
+                : "Entre com seu e-mail para receber um código de acesso."}
             </p>
             {otpPending ? (
               <>
                 <label htmlFor="code">Código de acesso</label>
-                <div className="portfolio-login__password">
+                <div className="portfolio-login__field">
                   <LockKeyhole aria-hidden="true" />
                   <input
                     id="code"
@@ -211,43 +206,17 @@ export function PortfolioPlayground({
             ) : (
               <>
                 <label htmlFor="email">E-mail</label>
-                <div className="portfolio-login__password">
+                <div className="portfolio-login__field">
                   <Mail aria-hidden="true" />
                   <input
                     id="email"
                     type="email"
-                    autoComplete="username"
+                    autoComplete="email"
                     placeholder="seu@email.com"
                     required
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                   />
-                </div>
-                <label htmlFor="password">Senha</label>
-                <div className="portfolio-login__password">
-                  <LockKeyhole aria-hidden="true" />
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    placeholder="Digite sua senha"
-                    required
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                  />
-                  <button
-                    type="button"
-                    aria-label={
-                      showPassword ? "Ocultar senha" : "Mostrar senha"
-                    }
-                    onClick={() => setShowPassword((current) => !current)}
-                  >
-                    {showPassword ? (
-                      <EyeOff aria-hidden="true" />
-                    ) : (
-                      <Eye aria-hidden="true" />
-                    )}
-                  </button>
                 </div>
               </>
             )}
