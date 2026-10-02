@@ -7,6 +7,7 @@ import { chromium } from "@playwright/test";
 const token = "a".repeat(64);
 const assistantId = "00000000-0000-4000-8000-000000000001";
 const usedigiAssistantId = "00000000-0000-4000-8000-000000000002";
+const c6AssistantId = "00000000-0000-4000-8000-000000000003";
 const searches = [];
 const emails = [];
 const send = (res, status, body) => {
@@ -39,6 +40,13 @@ const wallet = createServer((req, res) => {
         portfolio_name: "Demo",
         assistant_name: "Larissa",
         runtime_assistant_id: usedigiAssistantId,
+      },
+      {
+        scope_id: 3,
+        tenant_name: "C6",
+        portfolio_name: "Cartao Black",
+        assistant_name: "Soraia",
+        runtime_assistant_id: c6AssistantId,
       },
     ],
   });
@@ -110,7 +118,6 @@ const app = spawn(
       CHANNEL_CONSOLE_URL: `http://127.0.0.1:${wallet.address().port}`,
       LANGGRAPH_API_URL: `http://127.0.0.1:${runtime.address().port}`,
       PLAYGROUND_LEGACY_ASSISTANT_ID: assistantId,
-      PLAYGROUND_CHAT_SCOPE_IDS: "1,2",
       RAILWAY_PUBLIC_DOMAIN: "",
     },
   },
@@ -232,9 +239,10 @@ try {
   const list = await fetch(`${base}/api/portfolio/list`, { headers });
   assert.equal(list.status, 200);
   const portfolios = (await list.json()).portfolios;
-  assert.equal(portfolios.length, 2);
+  assert.equal(portfolios.length, 3);
   assert.equal(portfolios[0].chat_ready, true);
   assert.equal(portfolios[1].chat_ready, true);
+  assert.equal(portfolios[2].chat_ready, true);
   assert.equal(
     (await fetch(`${base}/api/portfolio/chat`, { method: "POST", headers }))
       .status,
@@ -284,6 +292,13 @@ try {
     );
     assert.ok(
       searches.some((metadata) => metadata.assistant_id === usedigiAssistantId),
+    );
+    await page.getByLabel("Carteira").selectOption("3");
+    await page.getByPlaceholder("Type your message...").waitFor();
+    await page.getByText("Soraia").waitFor();
+    await page.waitForTimeout(200);
+    assert.ok(
+      searches.some((metadata) => metadata.assistant_id === c6AssistantId),
     );
   } finally {
     await browser.close();

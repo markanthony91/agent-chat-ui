@@ -23,13 +23,13 @@ carteiras e seus Assistant IDs vêm do Console em tempo de execução. O token
 do Console e a chave do Resend ficam no servidor; o navegador acessa o Runtime pela URL
 configurada, como no Agent Chat UI original.
 
-`PLAYGROUND_CHAT_SCOPE_IDS=1,2` libera o chat das carteiras com Assistant
-configurado. O histórico é consultado pelo Assistant selecionado e a troca de
-carteira limpa o thread aberto. O passthrough LangGraph genérico e a rota de
-chat simplificada ficam indisponíveis nesse serviço. O login protege o acesso
-à interface; ela não é uma autorização no Runtime. Antes de testar ações
-financeiras em outra carteira, vincule os dados, o OKF e as tools dessa
-carteira no Runtime.
+Carteiras com `runtime_assistant_id` válido ficam disponíveis dinamicamente no
+Playground. O histórico é consultado pelo Assistant selecionado e a troca de
+carteira limpa o thread aberto. O passthrough LangGraph genérico e a rota de chat
+simplificada ficam indisponíveis nesse serviço. O login protege o acesso à
+interface; ela não é uma autorização no Runtime. Antes de testar ações
+financeiras em outra carteira, vincule os dados, o OKF e as tools dessa carteira
+no Runtime.
 
 O código expira em 10 minutos, aceita até cinco tentativas, só pode ser usado
 uma vez e cada conta pode solicitar até cinco códigos em 15 minutos. A sessão

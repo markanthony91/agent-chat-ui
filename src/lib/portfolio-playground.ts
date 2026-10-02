@@ -175,11 +175,6 @@ export async function portfolios(): Promise<Portfolio[]> {
 }
 
 export function assistantFor(portfolio: Portfolio) {
-  const allowed = (process.env.PLAYGROUND_CHAT_SCOPE_IDS || "1")
-    .split(",")
-    .map((id) => Number(id.trim()));
-  if (!allowed.includes(portfolio.scope_id))
-    throw new Error("portfolio_chat_not_ready");
   const assistant =
     portfolio.runtime_assistant_id ||
     (portfolio.scope_id === 1
