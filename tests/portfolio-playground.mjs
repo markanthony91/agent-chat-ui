@@ -10,6 +10,7 @@ const usedigiAssistantId = "00000000-0000-4000-8000-000000000002";
 const c6AssistantId = "00000000-0000-4000-8000-000000000003";
 const searches = [];
 const emails = [];
+const simulatorSaves = [];
 const send = (res, status, body) => {
   res.writeHead(status, {
     "Content-Type": "application/json",
@@ -19,37 +20,51 @@ const send = (res, status, body) => {
   });
   res.end(JSON.stringify(body));
 };
-const wallet = createServer((req, res) => {
-  if (
-    req.url !== "/api/playground/v1/portfolios" ||
-    req.headers.authorization !== `Bearer ${token}`
-  )
+const wallet = createServer(async (req, res) => {
+  if (req.headers.authorization !== `Bearer ${token}`)
     return send(res, 401, { error: "unauthorized" });
-  send(res, 200, {
-    portfolios: [
-      {
-        scope_id: 1,
-        tenant_name: "Fastpay",
-        portfolio_name: "Will Bank",
-        assistant_name: "Sophia",
-        runtime_assistant_id: null,
+  if (req.url === "/api/playground/v1/portfolios")
+    return send(res, 200, {
+      portfolios: [
+        {
+          scope_id: 1,
+          tenant_name: "Fastpay",
+          portfolio_name: "Will Bank",
+          assistant_name: "Sophia",
+          runtime_assistant_id: null,
+        },
+        {
+          scope_id: 2,
+          tenant_name: "Usedig",
+          portfolio_name: "Demo",
+          assistant_name: "Larissa",
+          runtime_assistant_id: usedigiAssistantId,
+        },
+        {
+          scope_id: 3,
+          tenant_name: "C6",
+          portfolio_name: "Cartao Black",
+          assistant_name: "Soraia",
+          runtime_assistant_id: c6AssistantId,
+        },
+      ],
+    });
+  if (req.url === "/api/playground/v1/portfolios/3/simulator") {
+    if (req.method === "PUT") {
+      let raw = "";
+      for await (const part of req) raw += part;
+      simulatorSaves.push(JSON.parse(raw));
+    }
+    return send(res, 200, {
+      configured: simulatorSaves.length > 0,
+      fixture: {
+        ...(simulatorSaves.at(-1)?.fixture || {}),
+        institution: "C6",
+        product: "Cartao Black",
       },
-      {
-        scope_id: 2,
-        tenant_name: "Usedig",
-        portfolio_name: "Demo",
-        assistant_name: "Larissa",
-        runtime_assistant_id: usedigiAssistantId,
-      },
-      {
-        scope_id: 3,
-        tenant_name: "C6",
-        portfolio_name: "Cartao Black",
-        assistant_name: "Soraia",
-        runtime_assistant_id: c6AssistantId,
-      },
-    ],
-  });
+    });
+  }
+  return send(res, 404, { error: "not_found" });
 });
 const runtime = createServer(async (req, res) => {
   if (req.method === "OPTIONS") return send(res, 204, {});
@@ -243,6 +258,24 @@ try {
   assert.equal(portfolios[0].chat_ready, true);
   assert.equal(portfolios[1].chat_ready, true);
   assert.equal(portfolios[2].chat_ready, true);
+  const simulator = await fetch(`${base}/api/portfolio/simulator?scope_id=3`, {
+    headers,
+  });
+  assert.equal(simulator.status, 200);
+  assert.deepEqual((await simulator.json()).fixture, {
+    institution: "C6",
+    product: "Cartao Black",
+  });
+  const savedSimulator = await fetch(
+    `${base}/api/portfolio/simulator?scope_id=3`,
+    {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({ fixture: { customer_id: "CUS-C6" } }),
+    },
+  );
+  assert.equal(savedSimulator.status, 200);
+  assert.equal(simulatorSaves[0].fixture.customer_id, "CUS-C6");
   assert.equal(
     (await fetch(`${base}/api/portfolio/chat`, { method: "POST", headers }))
       .status,
@@ -270,20 +303,20 @@ try {
       .getByLabel("Código de acesso")
       .fill(emails[1].text.match(/\b\d{6}\b/)?.[0]);
     await loginPage.getByRole("button", { name: "Confirmar código" }).click();
-    await loginPage.getByLabel("Carteira").waitFor();
+    await loginPage.getByLabel("Carteira", { exact: true }).waitFor();
     await loginPage.close();
     const context = await browser.newContext();
     const [name, value] = cookie.split("=");
     await context.addCookies([{ name, value, url: base }]);
     const page = await context.newPage();
     await page.goto(base);
-    await page.getByLabel("Carteira").selectOption("1");
+    await page.getByLabel("Carteira", { exact: true }).selectOption("1");
     await page.getByPlaceholder("Type your message...").waitFor();
     await page.getByText("Hide Tool Calls").waitFor();
     await page.waitForFunction(() =>
       document.body.textContent.includes("Thread History"),
     );
-    await page.getByLabel("Carteira").selectOption("2");
+    await page.getByLabel("Carteira", { exact: true }).selectOption("2");
     await page.getByPlaceholder("Type your message...").waitFor();
     await page.getByText("Larissa").waitFor();
     await page.waitForTimeout(200);
@@ -293,9 +326,15 @@ try {
     assert.ok(
       searches.some((metadata) => metadata.assistant_id === usedigiAssistantId),
     );
-    await page.getByLabel("Carteira").selectOption("3");
+    await page.getByLabel("Carteira", { exact: true }).selectOption("3");
     await page.getByPlaceholder("Type your message...").waitFor();
     await page.getByText("Soraia").waitFor();
+    await page.getByLabel("Configurar simulador da carteira").click();
+    await page.getByLabel("Simulador da carteira Cartao Black").waitFor();
+    assert.equal(await page.getByLabel("Institution").inputValue(), "C6");
+    assert.equal(await page.getByLabel("Product").inputValue(), "Cartao Black");
+    assert.equal(await page.getByLabel("Institution").isEditable(), false);
+    await page.getByLabel("Fechar simulador").click();
     await page.waitForTimeout(200);
     assert.ok(
       searches.some((metadata) => metadata.assistant_id === c6AssistantId),

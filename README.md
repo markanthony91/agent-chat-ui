@@ -31,6 +31,11 @@ interface; ela não é uma autorização no Runtime. Antes de testar ações
 financeiras em outra carteira, vincule os dados, o OKF e as tools dessa carteira
 no Runtime.
 
+A engrenagem ao lado de **Nova conversa** abre o Simulator Fixture da carteira
+selecionada. Os dados sintéticos são salvos pelo backend do Console em um escopo
+separado e valem somente para novas conversas. `Institution` e `Product` são
+somente leitura no navegador e vêm da configuração atual da carteira.
+
 O código expira em 10 minutos, aceita até cinco tentativas, só pode ser usado
 uma vez e cada conta pode solicitar até cinco códigos em 15 minutos. A sessão
 expira em oito horas. Sem Redis ou Resend configurados, o login não é concluído.

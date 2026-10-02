@@ -8,11 +8,14 @@ import {
   LockKeyhole,
   Mail,
   MessageCircle,
+  Settings,
   ShieldCheck,
+  X,
   Zap,
 } from "lucide-react";
 import { LegacyChatPage } from "@/components/legacy-chat-page";
 import { LangGraphLogoSVG } from "@/components/icons/langgraph";
+import { SimulatorPanel } from "@/components/simulator-panel";
 
 type Portfolio = {
   scope_id: number;
@@ -36,6 +39,7 @@ export function PortfolioPlayground({
   const [loggedIn, setLoggedIn] = useState(signedIn);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [scopeId, setScopeId] = useState<number | null>(null);
+  const [simulatorOpen, setSimulatorOpen] = useState(false);
   const [, setThreadId] = useQueryState("threadId");
   const [error, setError] = useState("");
 
@@ -99,6 +103,7 @@ export function PortfolioPlayground({
   async function selectPortfolio(value: number) {
     await setThreadId(null);
     setScopeId(value);
+    setSimulatorOpen(false);
     setError("");
   }
 
@@ -312,7 +317,18 @@ export function PortfolioPlayground({
           {selected.assistant_id && <span> · {selected.assistant_id}</span>}
         </div>
       )}
-      <section className="min-h-0 flex-1">
+      <section className="relative min-h-0 flex-1">
+        {selected && (
+          <button
+            type="button"
+            className="absolute top-2 right-14 z-20 flex size-10 items-center justify-center rounded-md hover:bg-gray-100"
+            aria-label="Configurar simulador da carteira"
+            title="Configurar simulador da carteira"
+            onClick={() => setSimulatorOpen(true)}
+          >
+            <Settings className="size-5" />
+          </button>
+        )}
         {!selected ? (
           <p className="text-muted-foreground p-8 text-center">
             Selecione uma carteira para iniciar.
@@ -335,6 +351,36 @@ export function PortfolioPlayground({
           />
         )}
       </section>
+      {selected && simulatorOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Simulador da carteira ${selected.portfolio_name}`}
+        >
+          <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
+            <div className="flex items-center justify-between border-b px-5 py-3">
+              <div>
+                <h2 className="font-semibold">Simulador da carteira</h2>
+                <p className="text-muted-foreground text-sm">
+                  {selected.tenant_name} · {selected.portfolio_name}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="flex size-9 items-center justify-center rounded-md hover:bg-gray-100"
+                aria-label="Fechar simulador"
+                onClick={() => setSimulatorOpen(false)}
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="min-h-0 overflow-y-auto">
+              <SimulatorPanel scopeId={selected.scope_id} />
+            </div>
+          </div>
+        </div>
+      )}
       {error && (
         <p
           role="alert"

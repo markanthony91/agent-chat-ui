@@ -174,6 +174,49 @@ export async function portfolios(): Promise<Portfolio[]> {
   return body.portfolios;
 }
 
+function simulatorEndpoint(scopeId: number) {
+  if (!Number.isSafeInteger(scopeId) || scopeId <= 0)
+    throw new Error("invalid_portfolio_scope");
+  const base = process.env.CHANNEL_CONSOLE_URL || "";
+  const token = process.env.PLAYGROUND_API_TOKEN || "";
+  if (!/^https?:\/\//.test(base) || !/^[a-f0-9]{64}$/.test(token))
+    throw new Error("portfolio_simulator_unavailable");
+  return {
+    url: `${base.replace(/\/$/, "")}/api/playground/v1/portfolios/${scopeId}/simulator`,
+    token,
+  };
+}
+
+export async function portfolioSimulator(scopeId: number) {
+  const { url, token } = simulatorEndpoint(scopeId);
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new Error("portfolio_simulator_unavailable");
+  return response.json();
+}
+
+export async function savePortfolioSimulator(
+  scopeId: number,
+  fixture: Record<string, unknown>,
+) {
+  const { url, token } = simulatorEndpoint(scopeId);
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ fixture }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new Error("portfolio_simulator_save_failed");
+  return response.json();
+}
+
 export function assistantFor(portfolio: Portfolio) {
   const assistant =
     portfolio.runtime_assistant_id ||
