@@ -1,5 +1,8 @@
 # Agente Zerai
 
+Frontend 0.6.9 requests only history fields from the Runtime and lists the 50
+most recent conversations. Opening a conversation still loads its full state.
+
 Frontend 0.6.8 restores the Dataset browser, agent settings, workflow editing,
 chat formatting and reconnect behavior from the previous Chat UI branch while
 keeping the isolated portfolio Playground. The legacy chat remains the default

@@ -62,7 +62,15 @@ export function ThreadProvider({ children }: { children: ReactNode }) {
       metadata: {
         ...getThreadSearchMetadata(resolvedAssistantId),
       },
-      limit: 100,
+      limit: 50,
+      select: [
+        "thread_id",
+        "created_at",
+        "updated_at",
+        "metadata",
+        "status",
+        "values",
+      ],
     });
 
     return threads;
